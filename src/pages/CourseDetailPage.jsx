@@ -2,10 +2,12 @@ import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Star, Users, Clock, Play, BookOpen, Award, CheckCircle } from 'lucide-react';
 import { mockCourses } from '../data/mockData';
+import { getCourseContent } from '../data/courseContent';
 
 const CourseDetailPage = () => {
   const { id } = useParams();
   const course = mockCourses.find(c => c.id === id);
+  const courseContent = getCourseContent(id);
 
   if (!course) {
     return (
@@ -19,6 +21,8 @@ const CourseDetailPage = () => {
       </div>
     );
   }
+
+  const totalLessons = courseContent?.sections.reduce((total, section) => total + section.lessons.length, 0) || course.curriculum.length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -54,10 +58,20 @@ const CourseDetailPage = () => {
               </div>
 
               <div className="flex items-center space-x-4">
-                <button className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105 flex items-center">
-                  <Play className="w-5 h-5 mr-2" />
-                  Enroll for Free
-                </button>
+                {courseContent && courseContent.sections.length > 0 ? (
+                  <Link 
+                    to={`/lesson/${course.id}/${courseContent.sections[0].lessons[0].id}`}
+                    className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105 flex items-center"
+                  >
+                    <Play className="w-5 h-5 mr-2" />
+                    Start Learning
+                  </Link>
+                ) : (
+                  <button className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105 flex items-center">
+                    <Play className="w-5 h-5 mr-2" />
+                    Enroll for Free
+                  </button>
+                )}
                 <button className="border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-all duration-300">
                   Preview Course
                 </button>
@@ -95,24 +109,63 @@ const CourseDetailPage = () => {
             {/* Course Content */}
             <div className="bg-white rounded-xl shadow-md p-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Course Content</h2>
-              <div className="space-y-3">
-                {course.curriculum.map((lesson, index) => (
-                  <div key={lesson.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <span className="bg-blue-100 text-blue-800 text-sm font-medium px-2 py-1 rounded">
-                          {index + 1}
-                        </span>
-                        <span className="font-medium text-gray-900">{lesson.title}</span>
+              
+              {courseContent && courseContent.sections.length > 0 ? (
+                <div className="space-y-4">
+                  {courseContent.sections.map((section, sectionIndex) => (
+                    <div key={section.id} className="border border-gray-200 rounded-lg">
+                      <div className="p-4 bg-gray-50 border-b border-gray-200">
+                        <h3 className="font-semibold text-gray-900">{section.title}</h3>
+                        <p className="text-sm text-gray-600 mt-1">{section.description}</p>
+                        <p className="text-sm text-gray-500 mt-1">{section.lessons.length} lessons</p>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Clock className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm text-gray-500">{lesson.duration}</span>
+                      <div className="divide-y divide-gray-200">
+                        {section.lessons.map((lesson, lessonIndex) => (
+                          <Link
+                            key={lesson.id}
+                            to={`/lesson/${course.id}/${lesson.id}`}
+                            className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors group"
+                          >
+                            <div className="flex items-center space-x-3">
+                              <span className="bg-blue-100 text-blue-800 text-sm font-medium px-2 py-1 rounded">
+                                {lessonIndex + 1}
+                              </span>
+                              <div>
+                                <span className="font-medium text-gray-900 group-hover:text-blue-600">{lesson.title}</span>
+                                <div className="flex items-center space-x-2 mt-1">
+                                  <span className="text-xs text-gray-500 capitalize">{lesson.type}</span>
+                                  <span className="text-xs text-gray-400">•</span>
+                                  <span className="text-xs text-gray-500">{lesson.duration}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <Play className="h-4 w-4 text-gray-400 group-hover:text-blue-600" />
+                          </Link>
+                        ))}
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {course.curriculum.map((lesson, index) => (
+                    <div key={lesson.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <span className="bg-blue-100 text-blue-800 text-sm font-medium px-2 py-1 rounded">
+                            {index + 1}
+                          </span>
+                          <span className="font-medium text-gray-900">{lesson.title}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Clock className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm text-gray-500">{lesson.duration}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Requirements */}
@@ -158,10 +211,20 @@ const CourseDetailPage = () => {
                 <p className="text-gray-600">Full lifetime access</p>
               </div>
 
-              <button className="w-full btn-primary mb-4 flex items-center justify-center">
-                <Play className="w-5 h-5 mr-2" />
-                Enroll Now
-              </button>
+              {courseContent && courseContent.sections.length > 0 ? (
+                <Link 
+                  to={`/lesson/${course.id}/${courseContent.sections[0].lessons[0].id}`}
+                  className="w-full btn-primary mb-4 flex items-center justify-center"
+                >
+                  <Play className="w-5 h-5 mr-2" />
+                  Start Learning
+                </Link>
+              ) : (
+                <button className="w-full btn-primary mb-4 flex items-center justify-center">
+                  <Play className="w-5 h-5 mr-2" />
+                  Enroll Now
+                </button>
+              )}
 
               <div className="space-y-4 text-sm">
                 <div className="flex items-center justify-between">
@@ -174,7 +237,7 @@ const CourseDetailPage = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Lessons:</span>
-                  <span className="font-medium">{course.curriculum.length}</span>
+                  <span className="font-medium">{totalLessons}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Certificate:</span>
@@ -187,7 +250,7 @@ const CourseDetailPage = () => {
                 <ul className="space-y-2 text-sm text-gray-600">
                   <li className="flex items-center">
                     <BookOpen className="h-4 w-4 mr-2" />
-                    {course.curriculum.length} lessons
+                    {totalLessons} lessons
                   </li>
                   <li className="flex items-center">
                     <Award className="h-4 w-4 mr-2" />
@@ -196,6 +259,10 @@ const CourseDetailPage = () => {
                   <li className="flex items-center">
                     <Clock className="h-4 w-4 mr-2" />
                     Self-paced learning
+                  </li>
+                  <li className="flex items-center">
+                    <Users className="h-4 w-4 mr-2" />
+                    Community access
                   </li>
                 </ul>
               </div>

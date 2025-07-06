@@ -6,6 +6,7 @@ import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
 import CoursesPage from './pages/CoursesPage';
 import CourseDetailPage from './pages/CourseDetailPage';
+import LessonPage from './pages/LessonPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import LoginPage from './pages/LoginPage';
@@ -38,6 +39,7 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/courses" element={<CoursesPage />} />
               <Route path="/course/:id" element={<CourseDetailPage />} />
+              <Route path="/lesson/:courseId/:lessonId" element={<LessonPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/login" element={<LoginPage />} />

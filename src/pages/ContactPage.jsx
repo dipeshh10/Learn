@@ -41,7 +41,7 @@ const ContactPage = () => {
     {
       icon: MapPin,
       title: 'Visit Us',
-      details: '123 Learning St, Education City',
+      details: 'Learn X, Kathmandu, Nepal',
       description: 'Come say hello at our office'
     },
     {
