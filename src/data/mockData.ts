@@ -1,3 +1,24 @@
+/**
+ * @typedef {Object} Course
+ * @property {string} id
+ * @property {string} title
+ * @property {string} description
+ * @property {string} instructor
+ * @property {string} instructorAvatar
+ * @property {string} category
+ * @property {'Beginner'|'Intermediate'|'Advanced'} level
+ * @property {string} duration
+ * @property {number} rating
+ * @property {number} studentsCount
+ * @property {string} image
+ * @property {number} price
+ * @property {Array<{id: string, title: string, duration: string, isCompleted?: boolean}>} curriculum
+ * @property {string[]} requirements
+ * @property {string[]} whatYouLearn
+ * @property {boolean} [isFeatured]
+ * @property {boolean} [hasDetailedContent]
+ */
+
 export interface Course {
   id: string;
   title: string;
