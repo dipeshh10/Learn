@@ -23,7 +23,6 @@ const LoginPage = () => {
 
     try {
       login(email, password, role);
-      // Navigate based on role
       switch (role) {
         case 'student':
           navigate('/student/dashboard');
@@ -162,50 +161,6 @@ const LoginPage = () => {
               </button>
             </div>
           </form>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Demo Accounts</span>
-              </div>
-            </div>
-
-            <div className="mt-4 space-y-2">
-              <button
-                onClick={() => {
-                  setEmail('student@demo.com');
-                  setPassword('password');
-                  setRole('student');
-                }}
-                className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded border"
-              >
-                Student Demo (student@demo.com)
-              </button>
-              <button
-                onClick={() => {
-                  setEmail('teacher@demo.com');
-                  setPassword('password');
-                  setRole('teacher');
-                }}
-                className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded border"
-              >
-                Teacher Demo (teacher@demo.com)
-              </button>
-              <button
-                onClick={() => {
-                  setEmail('admin@demo.com');
-                  setPassword('password');
-                  setRole('admin');
-                }}
-                className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded border"
-              >
-                Admin Demo (admin@demo.com)
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

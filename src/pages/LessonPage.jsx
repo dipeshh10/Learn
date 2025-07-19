@@ -413,7 +413,8 @@ const LessonPage = () => {
                       <p className="text-gray-600">No resources available for this lesson.</p>
                     )}
                   </div>
-                )}
+                
+                  )}
 
                 {activeTab === 'discussion' && (
                   <div>
