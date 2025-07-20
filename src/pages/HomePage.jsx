@@ -39,10 +39,10 @@ const HomePage = () => {
         <div className="container-max">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { number: '1M+', label: 'Active Learners', icon: Users },
-              { number: '500+', label: 'Free Courses', icon: BookOpen },
-              { number: '50+', label: 'Expert Instructors', icon: Award },
-              { number: '95%', label: 'Success Rate', icon: TrendingUp }
+              { number: '15+', label: 'Active Learners', icon: Users },
+              { number: '6+', label: 'Free Courses', icon: BookOpen },
+              { number: '5+', label: 'Expert Instructors', icon: Award },
+              { number: '100%', label: 'Success Rate', icon: TrendingUp }
             ].map((stat, index) => (
               <div key={index} className="text-center scale-in">
                 <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">

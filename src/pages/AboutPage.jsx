@@ -4,19 +4,19 @@ import { Users, Target, Award, Globe, Heart, Lightbulb } from 'lucide-react';
 const AboutPage = () => {
   const team = [
     {
-      name: 'Sarah Johnson',
+      name: 'Pradip Kc',
       role: 'CEO & Founder',
       image: 'https://images.pexels.com/photos/3184419/pexels-photo-3184419.jpeg?auto=compress&cs=tinysrgb&w=300',
       bio: 'Former education executive with 15+ years of experience in online learning.'
     },
     {
-      name: 'Michael Chen',
+      name: 'Prashant Dahal',
       role: 'CTO',
       image: 'https://images.pexels.com/photos/2379005/pexels-photo-2379005.jpeg?auto=compress&cs=tinysrgb&w=300',
       bio: 'Tech leader passionate about making education accessible through technology.'
     },
     {
-      name: 'Emily Rodriguez',
+      name: 'Manash Dahal',
       role: 'Head of Content',
       image: 'https://images.pexels.com/photos/3184639/pexels-photo-3184639.jpeg?auto=compress&cs=tinysrgb&w=300',
       bio: 'Curriculum designer focused on creating engaging learning experiences.'
@@ -24,10 +24,10 @@ const AboutPage = () => {
   ];
 
   const stats = [
-    { number: '1M+', label: 'Active Learners' },
-    { number: '500+', label: 'Free Courses' },
-    { number: '50+', label: 'Expert Instructors' },
-    { number: '95%', label: 'Success Rate' }
+    { number: '15+', label: 'Active Learners' },
+    { number: '5+', label: 'Free Courses' },
+    { number: '6+', label: 'Expert Instructors' },
+    { number: '100%', label: 'Success Rate' }
   ];
 
   return (
