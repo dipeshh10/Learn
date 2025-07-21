@@ -242,7 +242,7 @@ const HomePage = () => {
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Start Learning Free Today</h2>
             <p className="text-xl text-blue-100 mb-12 leading-relaxed">
-              Join over 1 million learners and start your journey to success with our comprehensive free courses
+              Join over 15 learners and start your journey to success with our comprehensive free courses
             </p>
             <Link to="/register" className="btn-primary bg-white text-blue-600 hover:bg-blue-50 shadow-2xl text-lg px-12 py-5">
               Get Started for Free
