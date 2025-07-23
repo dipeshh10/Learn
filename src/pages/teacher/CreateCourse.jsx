@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, Upload, Eye, Save, X } from 'lucide-react';
 
-const createCourse = () => {
+const CreateCourse = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [courseData, setCourseData] = useState({
@@ -533,4 +533,4 @@ const createCourse = () => {
   );
 };
 
-export default createCourse;
+export default CreateCourse;
