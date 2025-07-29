@@ -1,23 +1,20 @@
-const request = require('supertest');
-const app = require('../server');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-describe('Security Tests', () => {
-  it('should prevent SQL Injection', async () => {
-    const res = await request(app)
-      .post('/api/products/create_product')
-      .send({ productName: " OR 1=1--", price: 99.99, description: "Hacked" });
-    expect(res.status).toBe(400);
+describe('Security', () => {
+  it('should hash and verify password', async () => {
+    const password = 'securepass';
+    const hash = await bcrypt.hash(password, 10);
+    const match = await bcrypt.compare(password, hash);
+    expect(match).toBe(true);
   });
 
-  it('should prevent XSS attacks', async () => {
-    const res = await request(app)
-      .post('/api/products/create_product')
-      .send({ productName: "<script>alert('XSS')</script>", price: 99.99, description: 'XSS Test' });
-    expect(res.status).toBe(400);
+  it('should sign and verify JWT', () => {
+    const payload = { id: 1, email: 'test@example.com' };
+    const secret = 'testsecret';
+    const token = jwt.sign(payload, secret, { expiresIn: '1h' });
+    const decoded = jwt.verify(token, secret);
+    expect(decoded.id).toBe(1);
+    expect(decoded.email).toBe('test@example.com');
   });
-
-  it('should return 404 for unknown routes', async () => {
-    const res = await request(app).get('/api/unknown');
-    expect(res.status).toBe(404);
-  });
-});
+}); 

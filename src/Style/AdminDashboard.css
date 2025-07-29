@@ -1,0 +1,200 @@
+/* --- Main Layout and Dashboard Styles --- */
+html, body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  height: 100%;
+}
+
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f6f6fb;
+}
+
+.sidebar {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  bottom: 60px;
+  width: 240px;
+  z-index: 150;
+  background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 240px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-top: 80px;
+  padding-bottom: 100px;
+  box-sizing: border-box;
+}
+
+/* ... (rest of your main dashboard, cards, tables, buttons, forms, and modal styling remains unchanged) ... */
+
+/* --- Why LearnX Section Styles (was smart-shiksha) --- */
+.learnx-section {
+  margin: 60px 0 0 0;
+  padding: 0 10px;
+}
+
+.learnx-features-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 32px;
+  margin-top: 24px;
+}
+
+.learnx-feature-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px 0 rgba(44, 62, 80, 0.10);
+  padding: 36px 32px 28px 32px;
+  min-width: 180px;
+  max-width: 220px;
+  min-height: 170px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: box-shadow 0.2s, transform 0.2s;
+  border: 1.5px solid #f0f0f0;
+}
+
+.learnx-feature-card:hover {
+  box-shadow: 0 8px 32px 0 rgba(44, 62, 80, 0.18);
+  transform: translateY(-4px) scale(1.03);
+  border-color: #e04a8f;
+}
+
+.learnx-feature-icon {
+  font-size: 2.7rem;
+  margin-bottom: 18px;
+  display: block;
+}
+
+.learnx-feature-title {
+  font-size: 1.18rem;
+  font-weight: 600;
+  color: #e04a8f;
+  text-align: center;
+  margin-top: 2px;
+  letter-spacing: 0.5px;
+}
+
+@media (max-width: 900px) {
+  .learnx-features-grid {
+    gap: 18px;
+  }
+  .learnx-feature-card {
+    min-width: 140px;
+    max-width: 180px;
+    padding: 24px 12px 18px 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .learnx-features-grid {
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .learnx-feature-card {
+    width: 90%;
+    min-width: unset;
+    max-width: unset;
+    padding: 18px 8px 14px 8px;
+  }
+}
+
+/* --- UI Animation and Polish --- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dashboard-section,
+.overview-card,
+.feature-card,
+.modal-content,
+.learnx-section,
+.learnx-feature-card {
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+button, .edit-btn, .delete-btn, .add-btn, .save-btn, .action-btn, .table-action-btn, .dashboard-tab, .dashboard-tab.active, .why-feature-card, .learnx-feature-card {
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+button:hover, .edit-btn:hover, .delete-btn:hover, .add-btn:hover:not(:disabled), .save-btn:hover, .action-btn:hover, .table-action-btn:hover, .dashboard-tab:hover, .why-feature-card:hover, .learnx-feature-card:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 8px 16px rgba(124, 58, 237, 0.2);
+}
+
+/* Focus styles for accessibility */
+button:focus, .edit-btn:focus, .delete-btn:focus, .add-btn:focus, .save-btn:focus, .action-btn:focus, .table-action-btn:focus, .dashboard-tab:focus, .why-feature-card:focus, .learnx-feature-card:focus {
+  outline: 2px solid #7c3aed;
+  outline-offset: 2px;
+}
+
+/* Pulse animation for active status badges */
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 12px 4px rgba(124, 58, 237, 0.2);
+  }
+}
+.status-active {
+  animation: pulse 2.5s infinite;
+}
+
+/* Button ripple effect using pseudo elements */
+button, .action-btn, .table-action-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+button::after, .action-btn::after, .table-action-btn::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  background: rgba(124, 58, 237, 0.2);
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(1);
+  transition: opacity 0.6s, transform 0.6s;
+  top: 50%;
+  left: 50%;
+  transform-origin: center;
+  transform: translate(-50%, -50%) scale(0);
+}
+
+button:active::after, .action-btn:active::after, .table-action-btn:active::after {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  transition: none;
+}
+
+/* Smooth scroll for body */
+html {
+  scroll-behavior: smooth;
+}

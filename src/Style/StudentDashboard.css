@@ -1,0 +1,92 @@
+/* Fade-in Up Animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Apply fade-in to main dashboard areas */
+.dashboard-main,
+.dashboard-stats,
+.action-section,
+.recent-activity,
+.routine-box-list {
+  animation: fadeInUp 0.7s ease forwards;
+}
+
+/* Cards hover/focus enhancement */
+.stat-card, .action-section, .recent-activity {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.stat-card:hover, .stat-card:focus-within {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.15);
+  outline: none;
+}
+
+/* Buttons with smooth hover/active */
+.action-btn, .logout-btn {
+  transition: background-color 0.3s ease, transform 0.15s ease, box-shadow 0.3s ease;
+}
+
+.action-btn:hover, .action-btn:focus, 
+.logout-btn:hover, .logout-btn:focus {
+  background-color: #1e40af;
+  box-shadow: 0 6px 18px rgba(30, 64, 175, 0.4);
+  outline-offset: 4px;
+  outline: 2px solid #2563eb;
+  transform: translateY(-2px);
+}
+
+.action-btn:active, .logout-btn:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: none;
+}
+
+/* Focus-visible outlines for accessibility */
+.nav-link:focus-visible,
+.logout-btn:focus-visible,
+.action-btn:focus-visible {
+  outline: 3px solid #60a5fa;
+  outline-offset: 3px;
+}
+
+/* Routine Boxes subtle hover */
+.routine-box {
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  cursor: default;
+}
+
+.routine-box:hover, .routine-box:focus-within {
+  box-shadow: 0 16px 32px rgba(124, 58, 237, 0.2);
+  transform: translateY(-6px) scale(1.02);
+  outline: none;
+}
+
+/* Badge pulse animation (optional) */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 8px 6px rgba(37, 99, 235, 0.15);
+  }
+}
+
+.status-present {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+/* Table rows smooth hover */
+.crud-table tr:hover, 
+.crud-table tr:focus-within {
+  background-color: #edf2ff;
+  transition: background-color 0.3s ease;
+  outline: none;
+}

@@ -1,111 +1,38 @@
-import { User } from '../../models/index.js'
+const { User } = require('../models');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
+const JWT_SECRET = process.env.JWT_SECRET || 'supersecret';
 
-/**
- *  fetch all users
- */
-const getAll = async (req, res) => {
-    try {
-        //fetching all the data from users table
-        const users = await User.findAll();
-        res.status(200).send({ data: users, message: "successfully fetched data" })
-    } catch (e) {
-        res.status(500).json({ error: 'Failed to fetch users' });
-    }
-}
+exports.signup = async (req, res) => {
+  const { name, email, password, role } = req.body;
+  try {
+    const existing = await User.findOne({ where: { email } });
+    if (existing) return res.status(400).json({ message: 'Email already exists' });
+    const hash = await bcrypt.hash(password, 10);
+    const user = await User.create({ name, email, password: hash, role });
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '1d' });
+    res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+  } catch (err) {
+    res.status(500).json({ message: 'Signup failed', error: err.message });
+  }
+};
 
-/** 
- *  create new user
-*/
+exports.login = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const user = await User.findOne({ where: { email } });
+    if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(400).json({ message: 'Invalid credentials' });
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '1d' });
+    res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+  } catch (err) {
+    res.status(500).json({ message: 'Login failed', error: err.message });
+  }
+};
 
-const create = async (req, res) => {
-
-    try {
-        const body = req.body
-        console.log(req.body)
-        //validation
-        if (!body?.email || !body?.name || !body?.password)
-            return res.status(500).send({ message: "Invalid paylod" });
-        const users = await User.create({
-            name: body.name,
-            email: body.email,
-            password: body.password
-        });
-        res.status(201).send({ data: users, message: "successfully created user" })
-    } catch (e) {
-        console.log(e)
-        res.status(500).json({ error: 'Failed to fetch users' });
-    }
-}
-
-/**
- *  update existing user
- */
-
-const update = async (req, res) => {
-
-    try {
-        const { id = null } = req.params;
-        const body = req.body;
-        console.log(req.params)
-        //checking if user exist or not
-        const oldUser = await User.findOne({ where: { id } })
-        if (!oldUser) {
-            return res.status(500).send({ message: "User not found" });
-        }
-        oldUser.name = body.name;
-        oldUser.password = body.password || oldUser.password;
-        oldUser.email = body.email
-        oldUser.save();
-        res.status(201).send({ data: oldUser, message: "user updated successfully" })
-    } catch (e) {
-        console.log(e)
-        res.status(500).json({ error: 'Failed to update users' });
-    }
-}
-
-/**
- *  delete user 
- */
-const delelteById = async (req, res) => {
-
-    try {
-        const { id = null } = req.params;
-        const oldUser = await User.findOne({ where: { id } })
-
-        //checking if user exist or not
-        if (!oldUser) {
-            return res.status(500).send({ message: "User not found" });
-        }
-        oldUser.destroy();
-        res.status(201).send({ message: "user deleted successfully" })
-    } catch (e) {
-        res.status(500).json({ error: 'Failed to fetch users' });
-    }
-}
-
-/**
- *  fetch user by id
- */
-const getById = async (req, res) => {
-
-    try {
-        const { id = null } = req.params;
-        const user = await User.findOne({ where: { id } })
-        if (!user) {
-            return res.status(500).send({ message: "User not found" });
-        }
-        res.status(201).send({ message: "user fetched successfully", data: user })
-    } catch (e) {
-        res.status(500).json({ error: 'Failed to fetch users' });
-    }
-}
-
-
-export const userController = {
-    getAll,
-    create,
-    getById,
-    delelteById,
-    update
-}
+exports.profile = async (req, res) => {
+  const user = await User.findByPk(req.user.id, { attributes: { exclude: ['password'] } });
+  res.json(user);
+}; 
