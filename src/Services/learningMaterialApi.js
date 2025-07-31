@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL_LEARNING_MATERIALS || "http://localhost:5001/api/learning-materials";
+const API_URL = import.meta.env.VITE_API_URL_LEARNING_MATERIALS || "http://localhost:5002/api/learning-materials";
 
 function getToken() {
   return localStorage.getItem("token");

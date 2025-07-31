@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL_FEES || "http://localhost:5001/api/fees";
+const API_URL = import.meta.env.VITE_API_URL_FEES || "http://localhost:5002/api/fees";
 
 function getToken() {
   return localStorage.getItem("token");

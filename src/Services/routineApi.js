@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL_ROUTINES || "http://localhost:5001/api/routines";
+const API_URL = import.meta.env.VITE_API_URL_ROUTINES || "http://localhost:5002/api/routines";
 
 function getToken() {
   return localStorage.getItem("token");

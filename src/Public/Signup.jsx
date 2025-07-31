@@ -6,7 +6,7 @@ import '../Style/Signup.css';                // Use premium CSS similar to Login
 
 const Signup = () => {
   const [form, setForm] = useState({
-    name: '',
+    username: '',
     email: '',
     password: '',
     role: 'student',
@@ -20,7 +20,7 @@ const Signup = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-  };
+  } 
 
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
@@ -33,17 +33,25 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5001/api/signup', {
+      const res = await fetch('http://localhost:5002/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...form,
-          name: form.name.trim(),
-          email: form.email.trim()
+          username: form.username.trim(),
+          email: form.email.trim(),
+          password: form.password,
+          role: form.role
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Signup failed');
+      if (!res.ok) {
+        if (res.status === 409) {
+          setError('Email already exists. Please use a different email.');
+        } else {
+          setError(data.message || 'Signup failed');
+        }
+        return;
+      }
       setSuccess('Signup successful! Redirecting to login...');
       setTimeout(() => navigate('/login'), 1500);
     } catch (err) {
@@ -75,18 +83,18 @@ const Signup = () => {
 
           <form onSubmit={handleSubmit} className="login-form" noValidate>
             <div className="form-group">
-              <label htmlFor="name">Name</label>
-              <input
-                id="name"
-                type="text"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                placeholder="Enter your name"
-                required
-                disabled={loading}
-                aria-invalid={!!error}
-              />
+            <label htmlFor="username">Name</label>
+            <input
+              id="username"
+              type="text"
+              name="username"
+              value={form.username}
+              onChange={handleChange}
+              placeholder="Enter your name"
+              required
+              disabled={loading}
+              aria-invalid={!!error}
+            />
             </div>
 
             <div className="form-group">

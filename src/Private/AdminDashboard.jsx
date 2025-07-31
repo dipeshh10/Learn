@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from '../components/Slidebar';
 import logoIcon from '../assets/wow.png';
+import stdImg from '../assets/std.png';
+import teaImg from '../assets/tea.png';
+import feeImg from '../assets/fee.png';
+import notiImg from '../assets/noti.png';
 import '../Style/AdminDashboard.css'; // Make sure to include premium CSS with glassmorphic effects and animations
 import {
   fetchStudents,
@@ -71,7 +76,16 @@ function isValidEmail(email) {
 }
 
 export default function LearnX() {
+  const navigate = useNavigate();
   const [section, setSection] = useState('home');
+  // Auth check on mount
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    const token = localStorage.getItem('token');
+    if (!user || !token || user.role !== 'admin') {
+      navigate('/login', { replace: true });
+    }
+  }, [navigate]);
 
   // Students states
   const [students, setStudents] = useState([]);
@@ -438,22 +452,22 @@ export default function LearnX() {
       <h2>Welcome, Admin!</h2>
       <div className="overview-cards">
         <div className="overview-card">
-          <img src={require('../assets/std.png')} alt="Total Students" />
+          <img src={stdImg} alt="Total Students" />
           <h3>Total Students</h3>
           <p>{students.length}</p>
         </div>
         <div className="overview-card">
-          <img src={require('../assets/tea.png')} alt="Classes" />
+          <img src={teaImg} alt="Classes" />
           <h3>Students</h3>
           <p>{students.length}</p>
         </div>
         <div className="overview-card">
-          <img src={require('../assets/fee.png')} alt="Fees" />
+          <img src={feeImg} alt="Fees" />
           <h3>Fees</h3>
           <p>{fees.length}</p>
         </div>
         <div className="overview-card">
-          <img src={require('../assets/noti.png')} alt="Notifications" />
+          <img src={notiImg} alt="Notifications" />
           <h3>Notifications</h3>
           <p>{notifications.length}</p>
         </div>
@@ -1335,9 +1349,16 @@ export default function LearnX() {
     }
   };
 
+  // Enhanced logout: clear localStorage and redirect
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    navigate('/login', { replace: true });
+  };
+
   return (
     <div className="dashboard-layout">
-      <Sidebar role="admin" section={section} onSectionChange={setSection} />
+      <Sidebar role="admin" section={section} onSectionChange={setSection} onLogout={handleLogout} />
       <div className="main-content">
         {/* Header */}
         <header className="dashboard-header-bar">

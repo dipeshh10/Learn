@@ -615,6 +615,7 @@ const TeacherDashboard = () => {
   );
 };
 
+export default TeacherDashboard;
 // Modal component for pop-ups
 const Modal = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
@@ -625,4 +626,3 @@ const Modal = ({ isOpen, onClose, children }) => {
   );
 };
 
-export default TeacherDashboard;

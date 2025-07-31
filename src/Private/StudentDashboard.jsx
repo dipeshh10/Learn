@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Slidebar';
 import logoIcon from '../assets/wow.png';
+import claImg from '../assets/cla.png';
+import leaImg from '../assets/lea.png';
+import feeImg from '../assets/fee.png';
+import notiImg from '../assets/noti.png';
+import oneImg from '../assets/one.png';
+import twoImg from '../assets/two.png';
+import threeImg from '../assets/three.png';
+import fourImg from '../assets/four.png';
 import '../Style/StudentDashboard.css';
 import { FaChalkboardTeacher, FaBook, FaMoneyBillWave, FaBell } from 'react-icons/fa';
 import { fetchRoutines } from "../Services/routineApi";
@@ -11,6 +20,7 @@ import { fetchReports } from "../Services/reportApi";
 import { fetchAttendance } from "../Services/attendenceApi";
 
 const StudentDashboard = () => {
+  const navigate = useNavigate();
   const [section, setSection] = useState('home');
   const [students, setStudents] = useState([]);
   const [classes, setClasses] = useState([]);
@@ -26,6 +36,15 @@ const StudentDashboard = () => {
   const [attendanceLoading, setAttendanceLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
   const [notificationLoading, setNotificationLoading] = useState(true);
+
+  // Auth check on mount
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    const token = localStorage.getItem('token');
+    if (!user || !token || user.role !== 'student') {
+      navigate('/login', { replace: true });
+    }
+  }, [navigate]);
 
   useEffect(() => {
     if (section === 'routine') {
@@ -121,22 +140,22 @@ const StudentDashboard = () => {
           <h2>Welcome, Student!</h2>
           <div className="overview-cards">
             <div className="overview-card">
-              <img src={require('../assets/cla.png')} alt="Reports" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
+              <img src={claImg} alt="Reports" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
               <h3>Reports</h3>
               <p>{reports.length}</p>
             </div>
             <div className="overview-card">
-              <img src={require('../assets/lea.png')} alt="Learning Materials" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
+              <img src={leaImg} alt="Learning Materials" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
               <h3>Learning Materials</h3>
               <p>{learningMaterials.length}</p>
             </div>
             <div className="overview-card">
-              <img src={require('../assets/fee.png')} alt="Unpaid Fees" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
+              <img src={feeImg} alt="Unpaid Fees" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
               <h3>Unpaid Fees</h3>
               <p>{fees.filter(f => f.status.toLowerCase() !== 'paid').length}</p>
             </div>
             <div className="overview-card">
-              <img src={require('../assets/noti.png')} alt="Active Notifications" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
+              <img src={notiImg} alt="Active Notifications" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
               <h3>Active Notifications</h3>
               <p>{notifications.length}</p>
             </div>
@@ -169,7 +188,7 @@ const StudentDashboard = () => {
             <div className="features-grid">
               <div className="feature-card">
                 <div className="feature-img-banner">
-                  <img src={require('../assets/one.png')} alt="Learning Management System" />
+                  <img src={oneImg} alt="Learning Management System" />
                 </div>
                 <div className="feature-content">
                   <div className="feature-title">Learning Management System</div>
@@ -178,7 +197,7 @@ const StudentDashboard = () => {
               </div>
               <div className="feature-card">
                 <div className="feature-img-banner">
-                  <img src={require('../assets/two.png')} alt="School Management System" />
+                  <img src={twoImg} alt="School Management System" />
                 </div>
                 <div className="feature-content">
                   <div className="feature-title">School Management System</div>
@@ -187,7 +206,7 @@ const StudentDashboard = () => {
               </div>
               <div className="feature-card">
                 <div className="feature-img-banner">
-                  <img src={require('../assets/three.png')} alt="Accounting Management System" />
+                  <img src={threeImg} alt="Accounting Management System" />
                 </div>
                 <div className="feature-content">
                   <div className="feature-title">Accounting Management System</div>
@@ -196,7 +215,7 @@ const StudentDashboard = () => {
               </div>
               <div className="feature-card">
                 <div className="feature-img-banner">
-                  <img src={require('../assets/four.png')} alt="Notification System" />
+                  <img src={fourImg} alt="Notification System" />
                 </div>
                 <div className="feature-content">
                   <div className="feature-title">Notification System</div>
@@ -500,9 +519,16 @@ const StudentDashboard = () => {
     }
   }
 
+  // Enhanced logout: clear localStorage and redirect
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    navigate('/login', { replace: true });
+  };
+
   return (
     <div className="dashboard-layout">
-      <Sidebar role="student" section={section} onSectionChange={setSection} />
+      <Sidebar role="student" section={section} onSectionChange={setSection} onLogout={handleLogout} />
       <div className="main-content">
         {/* Modern Header */}
         <header className="dashboard-header-bar">

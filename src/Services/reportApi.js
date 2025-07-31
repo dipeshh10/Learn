@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL_REPORTS || "http://localhost:5001/api/reports";
+const API_URL = import.meta.env.VITE_API_URL_REPORTS || "http://localhost:5002/api/reports";
 
 function getToken() {
   return localStorage.getItem("token");

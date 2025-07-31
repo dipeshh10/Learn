@@ -1,3 +1,195 @@
+/* LearnX Modern Glassmorphic Login Styles */
+.loginx-bg {
+  min-height: 100vh;
+  width: 100vw;
+  background: linear-gradient(120deg, #2563eb 0%, #60a5fa 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.loginx-glass-card {
+  background: rgba(255,255,255,0.85);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 24px;
+  padding: 48px 40px 32px 40px;
+  max-width: 400px;
+  width: 100%;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 40px 0;
+  animation: fadeInUp 0.7s cubic-bezier(.39,.575,.56,1.000) both;
+}
+
+.loginx-logo-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.loginx-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+.loginx-brand {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #2563eb;
+  letter-spacing: 1px;
+}
+.loginx-welcome h2 {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.2em;
+  text-align: center;
+}
+.loginx-welcome p {
+  color: #2563eb;
+  font-size: 1.05rem;
+  margin-bottom: 1.5em;
+  text-align: center;
+}
+.loginx-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2em;
+}
+.loginx-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+  position: relative;
+}
+.loginx-field label {
+  font-weight: 600;
+  color: #2563eb;
+  margin-bottom: 0.1em;
+}
+.loginx-input {
+  padding: 0.7em 1em;
+  border-radius: 8px;
+  border: 1.5px solid #dbeafe;
+  background: rgba(255,255,255,0.7);
+  font-size: 1rem;
+  color: #1e293b;
+  outline: none;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+.loginx-input:focus {
+  border: 1.5px solid #2563eb;
+  box-shadow: 0 0 0 2px #2563eb33;
+}
+.loginx-password-toggle {
+  position: absolute;
+  top: 32px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #2563eb;
+  cursor: pointer;
+  user-select: none;
+  padding: 0;
+}
+.loginx-btn {
+  margin-top: 0.5em;
+  width: 100%;
+  padding: 0.8em 0;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #2563eb 0%, #60a5fa 100%);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px #2563eb22;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+}
+.loginx-btn:active {
+  transform: scale(0.98);
+}
+.loginx-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.loginx-error {
+  color: #ef4444;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 0.5em 1em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+  text-align: center;
+  animation: shake 0.3s;
+}
+.loginx-footer {
+  margin-top: 1.5em;
+  text-align: center;
+  color: #64748b;
+  font-size: 1rem;
+}
+.loginx-link {
+  color: #2563eb;
+  font-weight: 700;
+  margin-left: 6px;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.loginx-link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+.loginx-side-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  width: 50vw;
+  z-index: 1;
+  pointer-events: none;
+}
+.loginx-side-image img {
+  max-width: 90%;
+  max-height: 90vh;
+  border-radius: 24px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+  opacity: 0.95;
+}
+@media (max-width: 900px) {
+  .loginx-bg {
+    flex-direction: column;
+  }
+  .loginx-side-image {
+    display: none;
+  }
+  .loginx-glass-card {
+    margin: 32px 0;
+  }
+}
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(40px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
 /* Container and Layout */
 .login-container {
   display: flex;

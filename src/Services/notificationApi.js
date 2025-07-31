@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL_NOTIFICATIONS || "http://localhost:5001/api/notifications";
+const API_URL = import.meta.env.VITE_API_URL_NOTIFICATIONS || "http://localhost:5002/api/notifications";
 
 function getToken() {
   return localStorage.getItem("token");

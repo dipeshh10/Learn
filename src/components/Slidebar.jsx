@@ -33,12 +33,17 @@ const navConfig = {
   ],
 };
 
-const Sidebar = ({ role, section, onSectionChange }) => {
+
+const Sidebar = ({ role, section, onSectionChange, onLogout }) => {
   const navItems = navConfig[role] || [];
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    navigate('/');
+    if (onLogout) {
+      onLogout();
+    } else {
+      navigate('/');
+    }
   };
 
   const handleItemClick = (item) => {
