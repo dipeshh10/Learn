@@ -72,8 +72,8 @@ const Signup = () => {
         {/* Right Side Card */}
         <div className="login-card" aria-label="Signup form">
           <h1 className="logo" tabIndex={-1}>
-            <img src={logoIcon} alt="Smart Shiksha Logo" className="logo-icon" />
-            Smart Shiksha
+            <img src={logoIcon} alt="Learn X Logo" className="logo-icon" />
+            Learn X
           </h1>
 
           <div className="login-header">
