@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import loginImage from '../assets/read.png'; // Replace with your premium image path
 import logoIcon from '../assets/wow.png';    // Replace with your logo path
-import '../styles/Login.css';                 // Make sure to include the premium CSS or inline styles below
+import '../Style/Login.css';                 // Make sure to include the premium CSS or inline styles below
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -144,5 +144,3 @@ const Login = () => {
 };
 
 export default Login;
-import '../styles/Login.css'; // Ensure you have the styles defined in this file
-import '../styles/Signup.css'; // Include styles for the signup link

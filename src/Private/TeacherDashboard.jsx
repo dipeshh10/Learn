@@ -1,23 +1,23 @@
 
 import React, { useEffect, useState } from "react";
-import Sidebar from '../components/Sidebar';
+import Sidebar from '../components/Slidebar';
 import logoIcon from '../assets/wow.png';
-import '../styles/TeacherDashboard.css';
+import '../Style/TeacherDashboard.css';
 import { FaClipboardList, FaClipboardCheck, FaBell, FaEdit, FaTrash } from 'react-icons/fa';
-import { fetchStudents } from "./services/studentApi";
-import { fetchNotifications } from "./services/notificationApi";
+import { fetchStudents } from "../Services/studentApi";
+import { fetchNotifications } from "../Services/notificationApi";
 import {
   fetchReports,
   addReport,
   updateReport,
   deleteReport
-} from "./services/reportApi";
+} from "../Services/reportApi";
 import {
   fetchAttendance,
   addAttendance,
   updateAttendance,
   deleteAttendance
-} from "../services/attendanceApi";
+} from "../Services/attendenceApi";
 
 const TeacherDashboard = () => {
   // For demonstration, set role here. Replace with real auth logic as needed.

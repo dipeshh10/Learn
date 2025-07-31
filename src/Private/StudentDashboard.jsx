@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar';
+import Sidebar from '../components/Slidebar';
 import logoIcon from '../assets/wow.png';
-import '../styles/StudentDashboard.css';
+import '../Style/StudentDashboard.css';
 import { FaChalkboardTeacher, FaBook, FaMoneyBillWave, FaBell } from 'react-icons/fa';
-import { fetchRoutines } from "./services/routineApi";
-import { fetchLearningMaterials } from "./services/learningMaterialApi";
-import { fetchFees } from "./services/feeApi";
-import { fetchNotifications } from "./services/notificationApi";
-import { fetchReports } from "./services/reportApi";
-import { fetchAttendance } from "../services/attendanceApi";
+import { fetchRoutines } from "../Services/routineApi";
+import { fetchLearningMaterials } from "../Services/learningMaterialApi";
+import { fetchFees } from "../Services/feeApi";
+import { fetchNotifications } from "../Services/notificationApi";
+import { fetchReports } from "../Services/reportApi";
+import { fetchAttendance } from "../Services/attendenceApi";
 
 const StudentDashboard = () => {
   const [section, setSection] = useState('home');

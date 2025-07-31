@@ -1,38 +1,38 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Sidebar from '../components/Sidebar';
+import Sidebar from '../components/Slidebar';
 import logoIcon from '../assets/wow.png';
-import '../styles/LearnX.css'; // Make sure to include premium CSS with glassmorphic effects and animations
+import '../Style/AdminDashboard.css'; // Make sure to include premium CSS with glassmorphic effects and animations
 import {
   fetchStudents,
   addStudent,
   updateStudent,
   deleteStudent
-} from "./services/studentApi";
+} from "../Services/studentApi";
 import {
   fetchRoutines,
   addRoutine,
   updateRoutine,
   deleteRoutine
-} from "./services/routineApi";
+} from "../Services/routineApi";
 import {
   fetchLearningMaterials,
   addLearningMaterial,
   updateLearningMaterial,
   deleteLearningMaterial
-} from "./services/learningMaterialApi";
+} from "../Services/learningMaterialApi";
 import {
   fetchFees,
   addFee,
   updateFee,
   deleteFee
-} from "./services/feeApi";
+} from "../Services/feeApi";
 import {
   fetchNotifications,
   addNotification,
   updateNotification,
   deleteNotification
-} from "./services/notificationApi";
+} from "../Services/notificationApi";
 import { FaEdit, FaTrash } from 'react-icons/fa';
 
 const Modal = ({ isOpen, onClose, title, children }) => {

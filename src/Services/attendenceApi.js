@@ -1,4 +1,4 @@
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api/attendance';
+const API_URL = import.meta.env.VITE_API_URL_ATTENDANCE || 'http://localhost:5001/api/attendance';
 
 function getToken() {
   return localStorage.getItem('token');

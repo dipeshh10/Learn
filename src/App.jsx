@@ -1,11 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import HomePage from '../private/HomePage';
-import Login from '../public/Login';
-import Signup from '../public/Signup';
-import AdminDashboard from '../private/AdminDashboard';
-import TeacherDashboard from '../private/TeacherDashboard';
-import StudentDashboard from '../private/StudentDashboard';
+import HomePage from './Private/HomePage';
+import Login from './Public/Login';
+import Signup from './Public/Signup';
+import AdminDashboard from './Private/AdminDashboard';
+import TeacherDashboard from './Private/TeacherDashboard';
+import StudentDashboard from './Private/StudentDashboard';
 
 
 function App() {

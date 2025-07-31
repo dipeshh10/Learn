@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import loginImage from '../assets/read.png';  // Use premium/optimized image
 import logoIcon from '../assets/wow.png';     // Use your crisp logo
-import '../styles/Signup.css';                // Use premium CSS similar to Login.css
+import '../Style/Signup.css';                // Use premium CSS similar to Login.css
 
 const Signup = () => {
   const [form, setForm] = useState({
@@ -200,5 +200,3 @@ const Signup = () => {
 };
 
 export default Signup;
-import '../styles/Signup.css'; // Ensure you have the styles defined in this file
-import '../styles/Login.css'; // Include styles for the login link

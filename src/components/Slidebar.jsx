@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaHome, FaUserGraduate, FaChalkboardTeacher, FaCalendarAlt, FaBook, FaMoneyBillWave, FaClipboardList, FaUsers, FaClipboardCheck, FaSignOutAlt, FaBell } from 'react-icons/fa';
-import '../styles/Sidebar.css';
+import '../Style/Slidebar.css';
 
 const navConfig = {
   admin: [

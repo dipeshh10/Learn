@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import '../styles/HomePage.css';
+import '../Style/HomePage.css';
 import HeroImage from '../assets/read.png';
 import logoIcon from '../assets/wow.png'; // Your logo image path
 
