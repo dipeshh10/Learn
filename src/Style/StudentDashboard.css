@@ -1,3 +1,74 @@
+/* Center dashboard overview content */
+.dashboard-overview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 20px;
+  transform: scale(1.15);
+  transform-origin: center top;
+}
+
+.overview-cards-row {
+  display: flex;
+  gap: 3rem;
+  justify-content: center;
+  align-items: center;
+  margin: 2rem 0 1.5rem 0;
+  flex-wrap: wrap;
+}
+
+.overview-card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.12);
+  padding: 2.5rem 2rem 2rem 2rem;
+  min-width: 220px;
+  max-width: 260px;
+  flex: 1 1 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+
+.overview-card:hover, .overview-card:focus-within {
+  transform: translateY(-6px) scale(1.05);
+  box-shadow: 0 16px 40px rgba(37, 99, 235, 0.20);
+  outline: none;
+}
+
+.overview-card-img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  margin-bottom: 16px;
+}
+
+.overview-card-label {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 0.8rem;
+  color: #1e293b;
+}
+
+.overview-card-value {
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.dashboard-title {
+  font-size: 2.8rem;
+  font-weight: 700;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  color: #1e293b;
+  text-align: center;
+}
 /* Fade-in Up Animation */
 @keyframes fadeInUp {
   from {
@@ -20,12 +91,13 @@
 }
 
 /* Cards hover/focus enhancement */
-.stat-card, .action-section, .recent-activity {
+.feature-card, .why-feature-card {
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.stat-card:hover, .stat-card:focus-within {
-  transform: translateY(-4px);
+.feature-card:hover, .feature-card:focus-within,
+.why-feature-card:hover, .why-feature-card:focus-within {
+  transform: translateY(-4px) scale(1.03);
   box-shadow: 0 12px 30px rgba(37, 99, 235, 0.15);
   outline: none;
 }
@@ -57,16 +129,114 @@
   outline-offset: 3px;
 }
 
-/* Routine Boxes subtle hover */
-.routine-box {
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
-  cursor: default;
+.overview-card-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #1e293b;
+}
+.overview-card-value {
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: #2563eb;
+}
+.dashboard-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: #1e293b;
 }
 
-.routine-box:hover, .routine-box:focus-within {
-  box-shadow: 0 16px 32px rgba(124, 58, 237, 0.2);
-  transform: translateY(-6px) scale(1.02);
-  outline: none;
+/* Why Smart Shiksha Section */
+.why-smart-shiksha-section {
+  margin: 3.5rem 0 2.5rem 0;
+}
+.why-title {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+.why-features-row {
+  display: flex;
+  gap: 2.5rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.why-feature-card {
+  background: #f3f6fd;
+  border-radius: 14px;
+  padding: 1.2rem 1.5rem;
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 1px 6px rgba(37, 99, 235, 0.06);
+}
+.why-feature-icon {
+  font-size: 2.2rem;
+  margin-bottom: 0.5rem;
+}
+.why-feature-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* Features Section */
+.features-section {
+  margin: 3.5rem 0 2.5rem 0;
+}
+.features-title {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.features-underline {
+  width: 60px;
+  height: 4px;
+  background: #2563eb;
+  border-radius: 2px;
+  margin: 0 auto 2rem auto;
+}
+.features-row {
+  display: flex;
+  gap: 2.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.feature-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(37, 99, 235, 0.07);
+  padding: 1.5rem 1.2rem;
+  min-width: 220px;
+  max-width: 320px;
+  flex: 1 1 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.feature-img-banner img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  margin-bottom: 0.7rem;
+}
+.feature-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  color: #1e293b;
+}
+.feature-desc {
+  font-size: 0.98rem;
+  color: #475569;
+  margin-bottom: 0.2rem;
 }
 
 /* Badge pulse animation (optional) */
@@ -89,4 +259,162 @@
   background-color: #edf2ff;
   transition: background-color 0.3s ease;
   outline: none;
+}
+
+/* Student Course Cards */
+.course-cards-student {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.course-card-student {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.course-card-student:hover {
+  border-color: #2563eb;
+  box-shadow: 0 12px 32px rgba(37, 99, 235, 0.15);
+}
+
+.course-header-student {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.course-title-student {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  flex: 1;
+  margin-right: 16px;
+}
+
+.course-price-student {
+  background: linear-gradient(135deg, #059669 0%, #065f46 100%);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.course-description-student {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.course-footer-student {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+}
+
+.course-duration-student {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.duration-label {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.duration-value {
+  color: #1e293b;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.enroll-btn {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.enroll-btn:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+/* No data state for courses */
+.no-data-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.no-data-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.7;
+}
+
+.no-data-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.no-data-subtext {
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+/* Responsive design for student courses */
+@media (max-width: 768px) {
+  .course-cards-student {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .course-header-student {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  
+  .course-title-student {
+    margin-right: 0;
+  }
+  
+  .course-footer-student {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  
+  .enroll-btn {
+    width: 100%;
+    padding: 12px 20px;
+  }
 }

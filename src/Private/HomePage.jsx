@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import '../Style/HomePage.css';
 import HeroImage from '../assets/read.png';
-import logoIcon from '../assets/wow.png'; // Your logo image path
+import logoIcon from '../assets/LearnX.png'; // Your logo image path
 
 const HomePage = () => {
   const navigate = useNavigate();

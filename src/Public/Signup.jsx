@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import loginImage from '../assets/read.png';  // Use premium/optimized image
-import logoIcon from '../assets/wow.png';     // Use your crisp logo
+import loginImage from '../assets/login.svg';  // Use the same image as login
 import '../Style/Signup.css';                // Use premium CSS similar to Login.css
 
 const Signup = () => {
@@ -37,7 +36,7 @@ const Signup = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          username: form.username.trim(),
+          name: form.username.trim(),
           email: form.email.trim(),
           password: form.password,
           role: form.role
@@ -45,8 +44,8 @@ const Signup = () => {
       });
       const data = await res.json();
       if (!res.ok) {
-        if (res.status === 409) {
-          setError('Email already exists. Please use a different email.');
+        if (res.status === 400 && data.message.includes('already exists')) {
+          setError('User with this email is already registered. Please use a different email or login.');
         } else {
           setError(data.message || 'Signup failed');
         }
@@ -55,7 +54,12 @@ const Signup = () => {
       setSuccess('Signup successful! Redirecting to login...');
       setTimeout(() => navigate('/login'), 1500);
     } catch (err) {
-      setError(err.message);
+      console.error('Signup error:', err);
+      if (err.message.includes('fetch')) {
+        setError('Unable to connect to server. Please make sure the backend server is running.');
+      } else {
+        setError(err.message || 'An unexpected error occurred. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -71,11 +75,6 @@ const Signup = () => {
 
         {/* Right Side Card */}
         <div className="login-card" aria-label="Signup form">
-          <h1 className="logo" tabIndex={-1}>
-            <img src={logoIcon} alt="Learn X Logo" className="logo-icon" />
-            Learn X
-          </h1>
-
           <div className="login-header">
             <h2>CREATE ACCOUNT</h2>
             <p>Please fill in your details</p>
@@ -161,7 +160,6 @@ const Signup = () => {
               >
                 <option value="student">Student</option>
                 <option value="teacher">Teacher</option>
-                <option value="admin">Admin</option>
               </select>
             </div>
 

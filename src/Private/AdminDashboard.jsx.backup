@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaEdit, FaTrash, FaUser, FaUsers, FaChartBar, FaCalendarAlt, FaClipboardList, FaBook, FaMoneyBillWave, FaBell, FaGraduationCap } from "react-icons/fa";
 import Slidebar from "../components/Slidebar.jsx";
@@ -70,11 +70,6 @@ const AdminDashboard = () => {
     { _id: 2, title: 'English Language', description: 'English language course', instructor: 'Sita Devi', duration: '4 months', students: 30 }
   ]);
 
-  const [teachers, setTeachers] = useState([
-    { _id: 1, name: 'Ram Bahadur', email: 'ram@learnx.np', subject: 'Mathematics', phone: '9841234567', experience: '5 years' },
-    { _id: 2, name: 'Sita Devi', email: 'sita@learnx.np', subject: 'English', phone: '9847654321', experience: '8 years' }
-  ]);
-
   // Loading states
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [loadingRoutines, setLoadingRoutines] = useState(false);
@@ -84,7 +79,6 @@ const AdminDashboard = () => {
   const [loadingMaterials, setLoadingMaterials] = useState(false);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const [loadingCourses, setLoadingCourses] = useState(false);
-  const [loadingTeachers, setLoadingTeachers] = useState(false);
 
   // Modal states for students
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
@@ -151,7 +145,7 @@ const AdminDashboard = () => {
   };
 
   // Database API functions (to be connected to your backend)
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
   
   const apiCall = async (endpoint, method = 'GET', data = null) => {
     try {
@@ -187,7 +181,6 @@ const AdminDashboard = () => {
       try {
         const storedStudents = localStorage.getItem('students');
         const storedCourses = localStorage.getItem('courses');
-        const storedTeachers = localStorage.getItem('teachers');
         const storedRoutines = localStorage.getItem('routines');
         const storedReports = localStorage.getItem('reports');
         const storedAttendance = localStorage.getItem('attendance');
@@ -197,7 +190,6 @@ const AdminDashboard = () => {
 
         if (storedStudents) setStudents(JSON.parse(storedStudents));
         if (storedCourses) setCourses(JSON.parse(storedCourses));
-        if (storedTeachers) setTeachers(JSON.parse(storedTeachers));
         if (storedRoutines) setRoutines(JSON.parse(storedRoutines));
         if (storedReports) setReports(JSON.parse(storedReports));
         if (storedAttendance) setAttendanceList(JSON.parse(storedAttendance));
@@ -209,59 +201,12 @@ const AdminDashboard = () => {
       }
     };
 
-    loadStoredData();
-  }, []);
-
   // Modal states for courses
   const [showAddCourseModal, setShowAddCourseModal] = useState(false);
   const [showEditCourseModal, setShowEditCourseModal] = useState(false);
   const [courseForm, setCourseForm] = useState({ title: '', description: '', instructor: '', duration: '' });
   const [courseEditId, setCourseEditId] = useState(null);
   const [courseError, setCourseError] = useState('');
-
-  // Modal states for teachers
-  const [showAddTeacherModal, setShowAddTeacherModal] = useState(false);
-  const [showEditTeacherModal, setShowEditTeacherModal] = useState(false);
-  const [teacherForm, setTeacherForm] = useState({ name: '', email: '', subject: '', phone: '', experience: '' });
-  const [teacherEditId, setTeacherEditId] = useState(null);
-  const [teacherError, setTeacherError] = useState('');
-
-  // Optimized input handlers to prevent focus loss
-  const handleStudentFormChange = useCallback((field, value) => {
-    setStudentForm(prev => ({ ...prev, [field]: value }));
-  }, []);
-
-  const handleReportFormChange = useCallback((field, value) => {
-    setReportForm(prev => ({ ...prev, [field]: value }));
-  }, []);
-
-  const handleRoutineFormChange = useCallback((field, value) => {
-    setRoutineForm(prev => ({ ...prev, [field]: value }));
-  }, []);
-
-  const handleAttendanceFormChange = useCallback((field, value) => {
-    setAttendanceForm(prev => ({ ...prev, [field]: value }));
-  }, []);
-
-  const handleFeeFormChange = useCallback((field, value) => {
-    setFeeForm(prev => ({ ...prev, [field]: value }));
-  }, []);
-
-  const handleMaterialFormChange = useCallback((field, value) => {
-    setMaterialForm(prev => ({ ...prev, [field]: value }));
-  }, []);
-
-  const handleNotificationFormChange = useCallback((field, value) => {
-    setNotificationForm(prev => ({ ...prev, [field]: value }));
-  }, []);
-
-  const handleCourseFormChange = useCallback((field, value) => {
-    setCourseForm(prev => ({ ...prev, [field]: value }));
-  }, []);
-
-  const handleTeacherFormChange = useCallback((field, value) => {
-    setTeacherForm(prev => ({ ...prev, [field]: value }));
-  }, []);
 
   // Enhanced CRUD Functions for Courses with database integration
   const handleAddCourse = async () => {
@@ -359,102 +304,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Enhanced CRUD Functions for Teachers with database integration
-  const handleAddTeacher = async () => {
-    try {
-      setTeacherError('');
-      if (!teacherForm.name || !teacherForm.email || !teacherForm.subject || !teacherForm.phone || !teacherForm.experience) {
-        setTeacherError('All fields are required');
-        return;
-      }
-      
-      setLoadingTeachers(true);
-      const newTeacher = {
-        _id: Date.now(),
-        name: teacherForm.name,
-        email: teacherForm.email,
-        subject: teacherForm.subject,
-        phone: teacherForm.phone,
-        experience: teacherForm.experience
-      };
-
-      // Try to save to database first
-      try {
-        const savedTeacher = await apiCall('/teachers', 'POST', newTeacher);
-        newTeacher._id = savedTeacher._id || newTeacher._id;
-      } catch (dbError) {
-        console.warn('Database save failed, continuing with local storage:', dbError);
-      }
-
-      const updatedTeachers = [...teachers, newTeacher];
-      setTeachers(updatedTeachers);
-      syncWithLocalStorage('teachers', updatedTeachers);
-      
-      setTeacherForm({ name: '', email: '', subject: '', phone: '', experience: '' });
-      setShowAddTeacherModal(false);
-    } catch (error) {
-      setTeacherError(error.message || 'Failed to add teacher');
-    } finally {
-      setLoadingTeachers(false);
-    }
-  };
-
-  const handleUpdateTeacher = async () => {
-    try {
-      setTeacherError('');
-      if (!teacherForm.name || !teacherForm.email || !teacherForm.subject || !teacherForm.phone || !teacherForm.experience) {
-        setTeacherError('All fields are required');
-        return;
-      }
-      
-      setLoadingTeachers(true);
-
-      // Try to update in database first
-      try {
-        await apiCall(`/teachers/${teacherEditId}`, 'PUT', teacherForm);
-      } catch (dbError) {
-        console.warn('Database update failed, continuing with local storage:', dbError);
-      }
-
-      const updatedTeachers = teachers.map(t => 
-        t._id === teacherEditId ? { ...t, ...teacherForm } : t
-      );
-      setTeachers(updatedTeachers);
-      syncWithLocalStorage('teachers', updatedTeachers);
-      
-      setTeacherForm({ name: '', email: '', subject: '', phone: '', experience: '' });
-      setShowEditTeacherModal(false);
-      setTeacherEditId(null);
-    } catch (error) {
-      setTeacherError(error.message || 'Failed to update teacher');
-    } finally {
-      setLoadingTeachers(false);
-    }
-  };
-
-  const handleDeleteTeacher = async (id) => {
-    if (!confirm('Are you sure you want to delete this teacher?')) return;
-    
-    try {
-      setLoadingTeachers(true);
-
-      // Try to delete from database first
-      try {
-        await apiCall(`/teachers/${id}`, 'DELETE');
-      } catch (dbError) {
-        console.warn('Database delete failed, continuing with local storage:', dbError);
-      }
-
-      const updatedTeachers = teachers.filter(t => t._id !== id);
-      setTeachers(updatedTeachers);
-      syncWithLocalStorage('teachers', updatedTeachers);
-    } catch (error) {
-      alert('Failed to delete teacher: ' + error.message);
-    } finally {
-      setLoadingTeachers(false);
-    }
-  };
-
   // Modal Component
   const Modal = ({ isOpen, onClose, title, children }) => {
     return (
@@ -477,7 +326,7 @@ const AdminDashboard = () => {
               alignItems: 'center',
               zIndex: 1000
             }}
-            onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+            onClick={e => { if (e.target.classList.contains('modal-overlay')) onClose(); }}
           >
             <motion.div
               className="modal-content"
@@ -646,9 +495,7 @@ const AdminDashboard = () => {
         grades: reportForm.grades,
         date: new Date().toISOString().split('T')[0]
       };
-      const updatedReports = [...reports, newReport];
-      setReports(updatedReports);
-      syncWithLocalStorage('reports', updatedReports);
+      setReports([...reports, newReport]);
       setReportForm({ title: '', student: '', grades: '' });
       setShowAddReportModal(false);
     } catch (error) {
@@ -667,11 +514,9 @@ const AdminDashboard = () => {
       }
       
       setLoadingReports(true);
-      const updatedReports = reports.map(r => 
+      setReports(reports.map(r => 
         r.id === reportEditId ? { ...r, ...reportForm } : r
-      );
-      setReports(updatedReports);
-      syncWithLocalStorage('reports', updatedReports);
+      ));
       setReportForm({ title: '', student: '', grades: '' });
       setShowEditReportModal(false);
       setReportEditId(null);
@@ -687,9 +532,7 @@ const AdminDashboard = () => {
     
     try {
       setLoadingReports(true);
-      const updatedReports = reports.filter(r => r.id !== id);
-      setReports(updatedReports);
-      syncWithLocalStorage('reports', updatedReports);
+      setReports(reports.filter(r => r.id !== id));
     } catch (error) {
       alert('Failed to delete report: ' + error.message);
     } finally {
@@ -714,9 +557,7 @@ const AdminDashboard = () => {
         teacher: routineForm.teacher,
         room: routineForm.room
       };
-      const updatedRoutines = [...routines, newRoutine];
-      setRoutines(updatedRoutines);
-      syncWithLocalStorage('routines', updatedRoutines);
+      setRoutines([...routines, newRoutine]);
       setRoutineForm({ subject: '', time: '', teacher: '', room: '' });
       setShowAddRoutineModal(false);
     } catch (error) {
@@ -735,11 +576,9 @@ const AdminDashboard = () => {
       }
       
       setLoadingRoutines(true);
-      const updatedRoutines = routines.map(r => 
+      setRoutines(routines.map(r => 
         r._id === routineEditId ? { ...r, ...routineForm } : r
-      );
-      setRoutines(updatedRoutines);
-      syncWithLocalStorage('routines', updatedRoutines);
+      ));
       setRoutineForm({ subject: '', time: '', teacher: '', room: '' });
       setShowEditRoutineModal(false);
       setRoutineEditId(null);
@@ -755,9 +594,7 @@ const AdminDashboard = () => {
     
     try {
       setLoadingRoutines(true);
-      const updatedRoutines = routines.filter(r => r._id !== id);
-      setRoutines(updatedRoutines);
-      syncWithLocalStorage('routines', updatedRoutines);
+      setRoutines(routines.filter(r => r._id !== id));
     } catch (error) {
       alert('Failed to delete routine: ' + error.message);
     } finally {
@@ -782,9 +619,7 @@ const AdminDashboard = () => {
         status: attendanceForm.status,
         date: attendanceForm.date
       };
-      const updatedAttendance = [...attendanceList, newAttendance];
-      setAttendanceList(updatedAttendance);
-      syncWithLocalStorage('attendance', updatedAttendance);
+      setAttendanceList([...attendanceList, newAttendance]);
       setAttendanceForm({ studentName: '', class: '', status: 'Present', date: attendanceDate });
       setShowAddAttendanceModal(false);
     } catch (error) {
@@ -803,11 +638,9 @@ const AdminDashboard = () => {
       }
       
       setLoadingAttendance(true);
-      const updatedAttendance = attendanceList.map(a => 
+      setAttendanceList(attendanceList.map(a => 
         a._id === attendanceEditId ? { ...a, ...attendanceForm } : a
-      );
-      setAttendanceList(updatedAttendance);
-      syncWithLocalStorage('attendance', updatedAttendance);
+      ));
       setAttendanceForm({ studentName: '', class: '', status: 'Present', date: attendanceDate });
       setShowEditAttendanceModal(false);
       setAttendanceEditId(null);
@@ -823,9 +656,7 @@ const AdminDashboard = () => {
     
     try {
       setLoadingAttendance(true);
-      const updatedAttendance = attendanceList.filter(a => a._id !== id);
-      setAttendanceList(updatedAttendance);
-      syncWithLocalStorage('attendance', updatedAttendance);
+      setAttendanceList(attendanceList.filter(a => a._id !== id));
     } catch (error) {
       alert('Failed to delete attendance: ' + error.message);
     } finally {
@@ -1157,10 +988,7 @@ const AdminDashboard = () => {
                             }}
                           >
                             <FaEdit />
-                            <span className="edit-text" style={{ 
-                              display: 'inline',
-                              '@media (max-width: 768px)': { display: 'none' }
-                            }}>Edit</span>
+                            <span style={{ display: window.innerWidth > 768 ? 'inline' : 'none' }}>Edit</span>
                           </button>
                           <button
                             onClick={() => handleDeleteStudent(student._id)}
@@ -1196,10 +1024,7 @@ const AdminDashboard = () => {
                             }}
                           >
                             <FaTrash />
-                            <span className="delete-text" style={{ 
-                              display: 'inline',
-                              '@media (max-width: 768px)': { display: 'none' }
-                            }}>Delete</span>
+                            <span style={{ display: window.innerWidth > 768 ? 'inline' : 'none' }}>Delete</span>
                           </button>
                         </div>
                       </td>
@@ -1214,7 +1039,7 @@ const AdminDashboard = () => {
                 onClick={() => { 
                   setShowAddStudentModal(true); 
                   setStudentError(''); 
-                  setStudentForm({ name: '', email: '', course: '', fees: '' });
+                  setStudentForm({ name: '', email: '', course: '' });
                 }}
                 style={{
                   backgroundColor: '#2563eb',
@@ -1294,28 +1119,6 @@ const AdminDashboard = () => {
                     value={studentForm.course}
                     onChange={e => setStudentForm({ ...studentForm, course: e.target.value })}
                     placeholder="e.g., Computer Science"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Fees <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    value={studentForm.fees}
-                    onChange={e => setStudentForm({ ...studentForm, fees: e.target.value })}
-                    placeholder="e.g., Rs. 50,000"
                     required
                     style={{
                       padding: '8px 12px',
@@ -1424,28 +1227,6 @@ const AdminDashboard = () => {
                     value={studentForm.course}
                     onChange={e => setStudentForm({ ...studentForm, course: e.target.value })}
                     placeholder="e.g., Computer Science"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Fees <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    value={studentForm.fees}
-                    onChange={e => setStudentForm({ ...studentForm, fees: e.target.value })}
-                    placeholder="e.g., Rs. 50,000"
                     required
                     style={{
                       padding: '8px 12px',
@@ -1616,220 +1397,6 @@ const AdminDashboard = () => {
             </tbody>
           </table>
         )}
-
-        {/* Add Report Modal */}
-        <Modal isOpen={showAddReportModal} onClose={() => setShowAddReportModal(false)} title="Add Report">
-          <form onSubmit={e => { e.preventDefault(); handleAddReport(); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                Title <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <input
-                value={reportForm.title}
-                onChange={e => setReportForm({ ...reportForm, title: e.target.value })}
-                placeholder="e.g., Monthly Exam"
-                required
-                style={{
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  background: '#ffffff',
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease',
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                Student <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <input
-                value={reportForm.student}
-                onChange={e => setReportForm({ ...reportForm, student: e.target.value })}
-                placeholder="e.g., John Doe"
-                required
-                style={{
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  background: '#ffffff',
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease',
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                Grades <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <input
-                value={reportForm.grades}
-                onChange={e => setReportForm({ ...reportForm, grades: e.target.value })}
-                placeholder="e.g., A+"
-                required
-                style={{
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  background: '#ffffff',
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease',
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-            </div>
-            {reportError && <div style={{ color: '#ef4444', fontSize: '14px' }}>{reportError}</div>}
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
-              <button 
-                type="button" 
-                onClick={() => setShowAddReportModal(false)}
-                style={{
-                  padding: '8px 16px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  background: '#ffffff',
-                  color: '#374151',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500'
-                }}
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit" 
-                disabled={loadingReports}
-                style={{
-                  padding: '8px 16px',
-                  border: 'none',
-                  borderRadius: '6px',
-                  background: loadingReports ? '#9ca3af' : '#f59e0b',
-                  color: '#ffffff',
-                  cursor: loadingReports ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500'
-                }}
-              >
-                {loadingReports ? 'Adding...' : 'Add Report'}
-              </button>
-            </div>
-          </form>
-        </Modal>
-
-        {/* Edit Report Modal */}
-        <Modal isOpen={showEditReportModal} onClose={() => setShowEditReportModal(false)} title="Edit Report">
-          <form onSubmit={e => { e.preventDefault(); handleUpdateReport(); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                Title <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <input
-                value={reportForm.title}
-                onChange={e => setReportForm({ ...reportForm, title: e.target.value })}
-                placeholder="e.g., Monthly Exam"
-                required
-                style={{
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  background: '#ffffff',
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease',
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                Student <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <input
-                value={reportForm.student}
-                onChange={e => setReportForm({ ...reportForm, student: e.target.value })}
-                placeholder="e.g., John Doe"
-                required
-                style={{
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  background: '#ffffff',
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease',
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                Grades <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <input
-                value={reportForm.grades}
-                onChange={e => setReportForm({ ...reportForm, grades: e.target.value })}
-                placeholder="e.g., A+"
-                required
-                style={{
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  background: '#ffffff',
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease',
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-            </div>
-            {reportError && <div style={{ color: '#ef4444', fontSize: '14px' }}>{reportError}</div>}
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
-              <button 
-                type="button" 
-                onClick={() => setShowEditReportModal(false)}
-                style={{
-                  padding: '8px 16px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  background: '#ffffff',
-                  color: '#374151',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500'
-                }}
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit" 
-                disabled={loadingReports}
-                style={{
-                  padding: '8px 16px',
-                  border: 'none',
-                  borderRadius: '6px',
-                  background: loadingReports ? '#9ca3af' : '#f59e0b',
-                  color: '#ffffff',
-                  cursor: loadingReports ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500'
-                }}
-              >
-                {loadingReports ? 'Updating...' : 'Update Report'}
-              </button>
-            </div>
-          </form>
-        </Modal>
       </motion.div>
     </div>
   );
@@ -2671,508 +2238,6 @@ const AdminDashboard = () => {
     </div>
   );
 
-  // Teachers Section
-  const renderTeachers = () => (
-    <div style={{ padding: '20px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
-      <motion.div
-        key="teachers-section"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 20 }}
-        transition={{ duration: 0.4 }}
-        style={{
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          padding: '24px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
-          border: '1px solid #e5e7eb'
-        }}
-      >
-        <h2 style={{ 
-          color: '#2563eb', 
-          fontSize: '24px', 
-          fontWeight: '600', 
-          marginBottom: '20px',
-          textAlign: 'center'
-        }}>
-          Manage Teachers
-        </h2>
-        {loadingTeachers ? <p>Loading...</p> : (
-          <>
-            <div style={{ 
-              overflowX: 'auto',
-              WebkitOverflowScrolling: 'touch',
-              borderRadius: '12px',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-            }}>
-              <table style={{
-                width: '100%',
-                minWidth: '700px',
-                borderCollapse: 'collapse',
-                backgroundColor: 'white'
-              }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#374151', color: 'white' }}>
-                    <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '60px' }}>#</th>
-                    <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '150px' }}>NAME</th>
-                    <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '200px' }}>EMAIL</th>
-                    <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '120px' }}>SUBJECT</th>
-                    <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '120px' }}>PHONE</th>
-                    <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '100px' }}>EXPERIENCE</th>
-                    <th style={{ padding: '16px', textAlign: 'center', fontWeight: '600', minWidth: '150px' }}>ACTIONS</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {teachers.length === 0 && (
-                    <tr>
-                      <td colSpan="7" style={{ 
-                        padding: '20px', 
-                        textAlign: 'center', 
-                        color: '#6b7280',
-                        fontStyle: 'italic'
-                      }}>
-                        No teachers found. Add your first teacher!
-                      </td>
-                    </tr>
-                  )}
-                  {teachers.map((teacher, index) => (
-                    <tr key={teacher._id || index} style={{ 
-                      borderBottom: '1px solid #e5e7eb',
-                      transition: 'background-color 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
-                      <td style={{ padding: '16px', fontWeight: '500' }}>{index + 1}</td>
-                      <td style={{ padding: '16px', fontWeight: '600' }}>{teacher.name}</td>
-                      <td style={{ padding: '16px', color: '#2563eb' }}>{teacher.email}</td>
-                      <td style={{ padding: '16px' }}>{teacher.subject}</td>
-                      <td style={{ padding: '16px' }}>{teacher.phone}</td>
-                      <td style={{ padding: '16px', color: '#059669', fontWeight: '600' }}>{teacher.experience}</td>
-                      <td style={{ padding: '16px' }}>
-                        <div style={{ 
-                          display: 'flex', 
-                          gap: '8px', 
-                          justifyContent: 'center',
-                          flexWrap: 'wrap'
-                        }}>
-                          <button
-                            onClick={() => {
-                              setTeacherForm(teacher);
-                              setTeacherEditId(teacher._id);
-                              setShowEditTeacherModal(true);
-                              setTeacherError('');
-                            }}
-                            style={{
-                              backgroundColor: '#3b82f6',
-                              color: 'white',
-                              border: 'none',
-                              padding: '8px 12px',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontSize: '12px',
-                              fontWeight: '500',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              transition: 'all 0.2s',
-                              minWidth: '60px',
-                              justifyContent: 'center'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.backgroundColor = '#2563eb';
-                              e.target.style.transform = 'translateY(-1px)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.backgroundColor = '#3b82f6';
-                              e.target.style.transform = 'translateY(0)';
-                            }}
-                          >
-                            <FaEdit />
-                            <span className="edit-text">Edit</span>
-                          </button>
-                          <button
-                            onClick={() => handleDeleteTeacher(teacher._id)}
-                            disabled={loadingTeachers}
-                            style={{
-                              backgroundColor: '#ef4444',
-                              color: 'white',
-                              border: 'none',
-                              padding: '8px 12px',
-                              borderRadius: '6px',
-                              cursor: loadingTeachers ? 'not-allowed' : 'pointer',
-                              fontSize: '12px',
-                              fontWeight: '500',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              opacity: loadingTeachers ? 0.6 : 1,
-                              transition: 'all 0.2s',
-                              minWidth: '60px',
-                              justifyContent: 'center'
-                            }}
-                            onMouseEnter={(e) => {
-                              if (!loadingTeachers) {
-                                e.target.style.backgroundColor = '#dc2626';
-                                e.target.style.transform = 'translateY(-1px)';
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!loadingTeachers) {
-                                e.target.style.backgroundColor = '#ef4444';
-                                e.target.style.transform = 'translateY(0)';
-                              }
-                            }}
-                          >
-                            <FaTrash />
-                            <span className="delete-text">Delete</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            
-            <div style={{ textAlign: 'center', marginTop: '20px' }}>
-              <button 
-                onClick={() => { 
-                  setShowAddTeacherModal(true); 
-                  setTeacherError(''); 
-                  setTeacherForm({ name: '', email: '', subject: '', phone: '', experience: '' });
-                }}
-                style={{
-                  backgroundColor: '#2563eb',
-                  color: 'white',
-                  border: 'none',
-                  padding: '12px 24px',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  margin: '0 auto',
-                  transition: 'background-color 0.2s'
-                }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#1d4ed8'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#2563eb'}
-              >
-                <span style={{ fontSize: '18px' }}>➕</span> Add Teacher
-              </button>
-            </div>
-
-            {/* Add Teacher Modal */}
-            <Modal isOpen={showAddTeacherModal} onClose={() => setShowAddTeacherModal(false)} title="Add Teacher">
-              <form onSubmit={e => { e.preventDefault(); handleAddTeacher(); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Name <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    value={teacherForm.name}
-                    onChange={e => setTeacherForm({ ...teacherForm, name: e.target.value })}
-                    placeholder="e.g., Ram Bahadur"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Email <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    type="email"
-                    value={teacherForm.email}
-                    onChange={e => setTeacherForm({ ...teacherForm, email: e.target.value })}
-                    placeholder="e.g., ram@learnx.np"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Subject <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    value={teacherForm.subject}
-                    onChange={e => setTeacherForm({ ...teacherForm, subject: e.target.value })}
-                    placeholder="e.g., Mathematics"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Phone <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    value={teacherForm.phone}
-                    onChange={e => setTeacherForm({ ...teacherForm, phone: e.target.value })}
-                    placeholder="e.g., 9841234567"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Experience <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    value={teacherForm.experience}
-                    onChange={e => setTeacherForm({ ...teacherForm, experience: e.target.value })}
-                    placeholder="e.g., 5 years"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                {teacherError && <div style={{ color: '#ef4444', fontSize: '14px' }}>{teacherError}</div>}
-                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                  <button 
-                    type="button" 
-                    onClick={() => setShowAddTeacherModal(false)}
-                    style={{
-                      padding: '8px 16px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      background: '#ffffff',
-                      color: '#374151',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '500'
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit" 
-                    disabled={loadingTeachers}
-                    style={{
-                      padding: '8px 16px',
-                      border: 'none',
-                      borderRadius: '6px',
-                      background: loadingTeachers ? '#9ca3af' : '#2563eb',
-                      color: '#ffffff',
-                      cursor: loadingTeachers ? 'not-allowed' : 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '500'
-                    }}
-                  >
-                    {loadingTeachers ? 'Adding...' : 'Add Teacher'}
-                  </button>
-                </div>
-              </form>
-            </Modal>
-
-            {/* Edit Teacher Modal */}
-            <Modal isOpen={showEditTeacherModal} onClose={() => setShowEditTeacherModal(false)} title="Edit Teacher">
-              <form onSubmit={e => { e.preventDefault(); handleUpdateTeacher(); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Name <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    value={teacherForm.name}
-                    onChange={e => setTeacherForm({ ...teacherForm, name: e.target.value })}
-                    placeholder="e.g., Ram Bahadur"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Email <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    type="email"
-                    value={teacherForm.email}
-                    onChange={e => setTeacherForm({ ...teacherForm, email: e.target.value })}
-                    placeholder="e.g., ram@learnx.np"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Subject <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    value={teacherForm.subject}
-                    onChange={e => setTeacherForm({ ...teacherForm, subject: e.target.value })}
-                    placeholder="e.g., Mathematics"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Phone <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    value={teacherForm.phone}
-                    onChange={e => setTeacherForm({ ...teacherForm, phone: e.target.value })}
-                    placeholder="e.g., 9841234567"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Experience <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    value={teacherForm.experience}
-                    onChange={e => setTeacherForm({ ...teacherForm, experience: e.target.value })}
-                    placeholder="e.g., 5 years"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                {teacherError && <div style={{ color: '#ef4444', fontSize: '14px' }}>{teacherError}</div>}
-                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                  <button 
-                    type="button" 
-                    onClick={() => setShowEditTeacherModal(false)}
-                    style={{
-                      padding: '8px 16px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      background: '#ffffff',
-                      color: '#374151',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '500'
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit" 
-                    disabled={loadingTeachers}
-                    style={{
-                      padding: '8px 16px',
-                      border: 'none',
-                      borderRadius: '6px',
-                      background: loadingTeachers ? '#9ca3af' : '#2563eb',
-                      color: '#ffffff',
-                      cursor: loadingTeachers ? 'not-allowed' : 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '500'
-                    }}
-                  >
-                    {loadingTeachers ? 'Updating...' : 'Update Teacher'}
-                  </button>
-                </div>
-              </form>
-            </Modal>
-          </>
-        )}
-      </motion.div>
-    </div>
-  );
-
   // Main render function
   const renderContent = () => {
     switch(section) {
@@ -3194,8 +2259,6 @@ const AdminDashboard = () => {
         return renderNotifications();
       case 'courses':
         return renderCourses();
-      case 'teachers':
-        return renderTeachers();
       default:
         return renderHome();
     }
@@ -3209,80 +2272,69 @@ const AdminDashboard = () => {
   };
 
   return (
-    <>
-      <style>
-        {`
-          @media (max-width: 768px) {
-            .edit-text, .delete-text {
-              display: none !important;
-            }
-          }
-        `}
-      </style>
-      <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc' }}>
-        <Slidebar 
-          role="admin"
-          section={section} 
-          onSectionChange={setSection}
-          onLogout={handleLogout}
-        />
-        
-        <div style={{ 
-          flex: 1,
-          marginLeft: '240px',
-          minHeight: '100vh'
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+      <Slidebar 
+        role="admin"
+        section={section} 
+        onSectionChange={setSection}
+        onLogout={handleLogout}
+      />
+      
+      <div style={{ 
+        flex: 1,
+        marginLeft: '240px',
+        minHeight: '100vh'
+      }}>
+        {/* Header */}
+        <div style={{
+          position: 'sticky',
+          top: 0,
+          height: '70px',
+          background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+          color: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 24px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          zIndex: 100
         }}>
-          {/* Header */}
-          <div style={{
-            position: 'sticky',
-            top: 0,
-            height: '70px',
-            background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-            color: 'white',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0 24px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            zIndex: 100
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <img src={logoIcon} alt="LearnX Logo" style={{ width: '40px', height: '40px' }} />
-              <h1 style={{ 
-                margin: 0, 
-                fontSize: '24px', 
-                fontWeight: '700',
-                textShadow: '0 1px 2px rgba(0,0,0,0.1)'
-              }}>
-                LearnX Admin Dashboard
-              </h1>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <span style={{ fontSize: '14px', opacity: 0.9 }}>Welcome, Admin</span>
-              <div style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                background: 'rgba(255,255,255,0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '16px'
-              }}>
-                👤
-              </div>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <img src={logoIcon} alt="LearnX Logo" style={{ width: '40px', height: '40px' }} />
+            <h1 style={{ 
+              margin: 0, 
+              fontSize: '24px', 
+              fontWeight: '700',
+              textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+            }}>
+              LearnX Admin Dashboard
+            </h1>
           </div>
-          
-          {/* Main Content */}
-          <div style={{ minHeight: 'calc(100vh - 70px)' }}>
-            <AnimatePresence mode="wait">
-              {renderContent()}
-            </AnimatePresence>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <span style={{ fontSize: '14px', opacity: 0.9 }}>Welcome, Admin</span>
+            <div style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '16px'
+            }}>
+              👤
+            </div>
           </div>
         </div>
+        
+        {/* Main Content */}
+        <div style={{ minHeight: 'calc(100vh - 70px)' }}>
+          <AnimatePresence mode="wait">
+            {renderContent()}
+          </AnimatePresence>
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 

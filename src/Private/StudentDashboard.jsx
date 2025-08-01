@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from '../components/Slidebar';
-import logoIcon from '../assets/wow.png';
+import logoIcon from '../assets/LearnX.png';
 import claImg from '../assets/cla.png';
 import leaImg from '../assets/lea.png';
 import feeImg from '../assets/fee.png';
@@ -20,7 +20,6 @@ import { fetchReports } from "../Services/reportApi";
 import { fetchAttendance } from "../Services/attendenceApi";
 
 const StudentDashboard = () => {
-  const navigate = useNavigate();
   const [section, setSection] = useState('home');
   const [students, setStudents] = useState([]);
   const [classes, setClasses] = useState([]);
@@ -36,15 +35,7 @@ const StudentDashboard = () => {
   const [attendanceLoading, setAttendanceLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
   const [notificationLoading, setNotificationLoading] = useState(true);
-
-  // Auth check on mount
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    const token = localStorage.getItem('token');
-    if (!user || !token || user.role !== 'student') {
-      navigate('/login', { replace: true });
-    }
-  }, [navigate]);
+  const [courses, setCourses] = useState([]);
 
   useEffect(() => {
     if (section === 'routine') {
@@ -65,7 +56,18 @@ const StudentDashboard = () => {
     if (section === 'attendance') {
       loadAttendance();
     }
+    if (section === 'courses') {
+      loadCourses();
+    }
   }, [section]);
+
+  // Load courses from localStorage (shared with teacher)
+  function loadCourses() {
+    const savedCourses = localStorage.getItem('courses');
+    if (savedCourses) {
+      setCourses(JSON.parse(savedCourses));
+    }
+  }
 
   async function loadRoutines() {
     setRoutineLoading(true);
@@ -137,33 +139,33 @@ const StudentDashboard = () => {
     if (section === 'home') {
       return (
         <div className="dashboard-overview">
-          <h2>Welcome, Student!</h2>
-          <div className="overview-cards">
+          <h2 className="dashboard-title">Welcome, Student!</h2>
+          <div className="overview-cards-row">
             <div className="overview-card">
-              <img src={claImg} alt="Reports" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
-              <h3>Reports</h3>
-              <p>{reports.length}</p>
+              <img src={claImg} alt="Reports" className="overview-card-img" />
+              <div className="overview-card-label">Reports</div>
+              <div className="overview-card-value">{reports.length}</div>
             </div>
             <div className="overview-card">
-              <img src={leaImg} alt="Learning Materials" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
-              <h3>Learning Materials</h3>
-              <p>{learningMaterials.length}</p>
+              <img src={leaImg} alt="Learning Materials" className="overview-card-img" />
+              <div className="overview-card-label">Learning Materials</div>
+              <div className="overview-card-value">{learningMaterials.length}</div>
             </div>
             <div className="overview-card">
-              <img src={feeImg} alt="Unpaid Fees" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
-              <h3>Unpaid Fees</h3>
-              <p>{fees.filter(f => f.status.toLowerCase() !== 'paid').length}</p>
+              <img src={feeImg} alt="Unpaid Fees" className="overview-card-img" />
+              <div className="overview-card-label">Unpaid Fees</div>
+              <div className="overview-card-value">{fees.filter(f => f.status && f.status.toLowerCase() !== 'paid').length}</div>
             </div>
             <div className="overview-card">
-              <img src={notiImg} alt="Active Notifications" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
-              <h3>Active Notifications</h3>
-              <p>{notifications.length}</p>
+              <img src={notiImg} alt="Active Notifications" className="overview-card-img" />
+              <div className="overview-card-label">Active Notifications</div>
+              <div className="overview-card-value">{notifications.length}</div>
             </div>
           </div>
           {/* Why SMART SHIKSHA Section */}
-          <div className="why-smart-shiksha-section">
-            <h2 style={{ textAlign: 'center', margin: '40px 0 20px' }}>Why SMART SHIKSHA?</h2>
-            <div className="why-features-grid">
+          <div className="why-LearnX-section">
+            <h2 className="why-title">Why LearnX?</h2>
+            <div className="why-features-row">
               <div className="why-feature-card">
                 <span role="img" aria-label="web" className="why-feature-icon">🌐</span>
                 <div className="why-feature-title">Web Based</div>
@@ -185,7 +187,7 @@ const StudentDashboard = () => {
           <div className="features-section">
             <h2 className="features-title">Our Features</h2>
             <div className="features-underline"></div>
-            <div className="features-grid">
+            <div className="features-row">
               <div className="feature-card">
                 <div className="feature-img-banner">
                   <img src={oneImg} alt="Learning Management System" />
@@ -291,244 +293,705 @@ const StudentDashboard = () => {
     }
     if (section === 'routine') {
       return (
-        <div className="crud-table-card">
-          <h2 className="table-title">Routine</h2>
-          <div className="table-container">
+        <div style={{ padding: '20px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
+          <motion.div
+            key="routine-section"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.4 }}
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '16px',
+              padding: '24px',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+              border: '1px solid #e5e7eb'
+            }}
+          >
+            <h2 style={{ 
+              color: '#2563eb', 
+              fontSize: '24px', 
+              fontWeight: '600', 
+              marginBottom: '20px',
+              textAlign: 'center'
+            }}>
+              Class Routine
+            </h2>
             {routineLoading ? (
-              <p>Loading...</p>
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                padding: '40px',
+                color: '#6b7280'
+              }}>
+                Loading routines...
+              </div>
             ) : (
-              <table className="crud-table styled-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Day</th>
-                    <th>Class</th>
-                    <th>Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {routines.length === 0 ? (
-                    <tr><td colSpan="4" style={{ textAlign: 'center', color: '#888' }}>No routines found</td></tr>
-                  ) : routines.map((r, idx) => (
-                    <tr key={r.id}>
-                      <td>{idx + 1}</td>
-                      <td>{r.day}</td>
-                      <td>{r.class}</td>
-                      <td>{r.time}</td>
+              <div style={{ 
+                overflowX: 'auto',
+                WebkitOverflowScrolling: 'touch',
+                borderRadius: '12px',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+              }}>
+                <table style={{
+                  width: '100%',
+                  minWidth: '600px',
+                  borderCollapse: 'collapse',
+                  backgroundColor: 'white'
+                }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#374151', color: 'white' }}>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '60px' }}>#</th>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '120px' }}>DAY</th>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '200px' }}>CLASS</th>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '150px' }}>TIME</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {routines.length === 0 && (
+                      <tr>
+                        <td colSpan="4" style={{ 
+                          padding: '20px', 
+                          textAlign: 'center', 
+                          color: '#6b7280',
+                          fontStyle: 'italic'
+                        }}>
+                          No routines found.
+                        </td>
+                      </tr>
+                    )}
+                    {routines.map((r, idx) => (
+                      <tr key={r.id || idx} style={{ 
+                        borderBottom: '1px solid #e5e7eb',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        <td style={{ padding: '16px', fontWeight: '500' }}>{idx + 1}</td>
+                        <td style={{ padding: '16px', fontWeight: '600', color: '#1f2937' }}>{r.day}</td>
+                        <td style={{ padding: '16px', color: '#2563eb' }}>{r.class}</td>
+                        <td style={{ padding: '16px', color: '#6b7280' }}>{r.time}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </div>
+          </motion.div>
         </div>
       );
     }
     if (section === 'learning') {
       return (
-        <div className="crud-table-card">
-          <h2 className="table-title">Learning Materials</h2>
-          <div className="table-container">
+        <div style={{ padding: '20px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
+          <motion.div
+            key="learning-section"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.4 }}
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '16px',
+              padding: '24px',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+              border: '1px solid #e5e7eb'
+            }}
+          >
+            <h2 style={{ 
+              color: '#2563eb', 
+              fontSize: '24px', 
+              fontWeight: '600', 
+              marginBottom: '20px',
+              textAlign: 'center'
+            }}>
+              Learning Materials
+            </h2>
             {learningLoading ? (
-              <p>Loading...</p>
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                padding: '40px',
+                color: '#6b7280'
+              }}>
+                Loading materials...
+              </div>
             ) : (
-              <table className="crud-table styled-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Title</th>
-                    <th>Type</th>
-                    <th>Link</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {learningMaterials.length === 0 ? (
-                    <tr><td colSpan="4" style={{ textAlign: 'center', color: '#888' }}>No materials found</td></tr>
-                  ) : learningMaterials.map((l, idx) => (
-                    <tr key={l.id}>
-                      <td>{idx + 1}</td>
-                      <td>{l.title}</td>
-                      <td>{l.type}</td>
-                      <td>
-                        <a href={l.link} target="_blank" rel="noopener noreferrer">
-                          {l.type === 'PDF' ? 'View PDF' : 'Watch Video'}
-                        </a>
-                      </td>
+              <div style={{ 
+                overflowX: 'auto',
+                WebkitOverflowScrolling: 'touch',
+                borderRadius: '12px',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+              }}>
+                <table style={{
+                  width: '100%',
+                  minWidth: '600px',
+                  borderCollapse: 'collapse',
+                  backgroundColor: 'white'
+                }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#374151', color: 'white' }}>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '60px' }}>#</th>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '250px' }}>TITLE</th>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '120px' }}>TYPE</th>
+                      <th style={{ padding: '16px', textAlign: 'center', fontWeight: '600', minWidth: '150px' }}>LINK</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {learningMaterials.length === 0 && (
+                      <tr>
+                        <td colSpan="4" style={{ 
+                          padding: '20px', 
+                          textAlign: 'center', 
+                          color: '#6b7280',
+                          fontStyle: 'italic'
+                        }}>
+                          No learning materials found.
+                        </td>
+                      </tr>
+                    )}
+                    {learningMaterials.map((l, idx) => (
+                      <tr key={l.id || idx} style={{ 
+                        borderBottom: '1px solid #e5e7eb',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        <td style={{ padding: '16px', fontWeight: '500' }}>{idx + 1}</td>
+                        <td style={{ padding: '16px', fontWeight: '600', color: '#1f2937' }}>{l.title}</td>
+                        <td style={{ padding: '16px' }}>
+                          <span style={{
+                            padding: '4px 12px',
+                            borderRadius: '20px',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            textTransform: 'uppercase',
+                            backgroundColor: l.type?.toLowerCase() === 'pdf' ? '#fef3c7' : '#ddd6fe',
+                            color: l.type?.toLowerCase() === 'pdf' ? '#d97706' : '#7c3aed'
+                          }}>
+                            {l.type}
+                          </span>
+                        </td>
+                        <td style={{ padding: '16px', textAlign: 'center' }}>
+                          <a 
+                            href={l.link} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            style={{
+                              backgroundColor: '#2563eb',
+                              color: 'white',
+                              padding: '8px 16px',
+                              borderRadius: '6px',
+                              textDecoration: 'none',
+                              fontSize: '12px',
+                              fontWeight: '500',
+                              display: 'inline-block',
+                              transition: 'background-color 0.2s'
+                            }}
+                            onMouseEnter={(e) => e.target.style.backgroundColor = '#1d4ed8'}
+                            onMouseLeave={(e) => e.target.style.backgroundColor = '#2563eb'}
+                          >
+                            {l.type === 'PDF' ? '📄 View PDF' : '▶️ Watch Video'}
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </div>
+          </motion.div>
         </div>
       );
     }
     if (section === 'fees') {
       return (
-        <div className="crud-table-card">
-          <h2 className="table-title">Fees</h2>
-          <div className="table-container">
+        <div style={{ padding: '20px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
+          <motion.div
+            key="fees-section"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.4 }}
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '16px',
+              padding: '24px',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+              border: '1px solid #e5e7eb'
+            }}
+          >
+            <h2 style={{ 
+              color: '#2563eb', 
+              fontSize: '24px', 
+              fontWeight: '600', 
+              marginBottom: '20px',
+              textAlign: 'center'
+            }}>
+              Fees Management
+            </h2>
             {feeLoading ? (
-              <p>Loading...</p>
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                padding: '40px',
+                color: '#6b7280'
+              }}>
+                Loading fees...
+              </div>
             ) : (
-              <table className="crud-table styled-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Student</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {fees.length === 0 ? (
-                    <tr><td colSpan="4" style={{ textAlign: 'center', color: '#888' }}>No fees found</td></tr>
-                  ) : fees.map((f, idx) => (
-                    <tr key={f.id}>
-                      <td>{idx + 1}</td>
-                      <td>{f.studentName}</td>
-                      <td>{f.amount}</td>
-                      <td>
-                        <span className={`status-badge ${f.status.toLowerCase() === 'paid' ? 'status-active' : 'status-inactive'}`}>
-                          {f.status}
-                        </span>
-                      </td>
+              <div style={{ 
+                overflowX: 'auto',
+                WebkitOverflowScrolling: 'touch',
+                borderRadius: '12px',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+              }}>
+                <table style={{
+                  width: '100%',
+                  minWidth: '600px',
+                  borderCollapse: 'collapse',
+                  backgroundColor: 'white'
+                }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#374151', color: 'white' }}>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '60px' }}>#</th>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '200px' }}>STUDENT</th>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '120px' }}>AMOUNT</th>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '120px' }}>STATUS</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {fees.length === 0 && (
+                      <tr>
+                        <td colSpan="4" style={{ 
+                          padding: '20px', 
+                          textAlign: 'center', 
+                          color: '#6b7280',
+                          fontStyle: 'italic'
+                        }}>
+                          No fees found.
+                        </td>
+                      </tr>
+                    )}
+                    {fees.map((f, idx) => (
+                      <tr key={f.id || idx} style={{ 
+                        borderBottom: '1px solid #e5e7eb',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        <td style={{ padding: '16px', fontWeight: '500' }}>{idx + 1}</td>
+                        <td style={{ padding: '16px', fontWeight: '600', color: '#1f2937' }}>{f.studentName}</td>
+                        <td style={{ padding: '16px', color: '#059669', fontWeight: '600' }}>${f.amount}</td>
+                        <td style={{ padding: '16px' }}>
+                          <span style={{
+                            padding: '4px 12px',
+                            borderRadius: '20px',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            textTransform: 'uppercase',
+                            backgroundColor: f.status?.toLowerCase() === 'paid' ? '#dcfce7' : '#fee2e2',
+                            color: f.status?.toLowerCase() === 'paid' ? '#15803d' : '#dc2626'
+                          }}>
+                            {f.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </div>
+          </motion.div>
         </div>
       );
     }
     if (section === 'reports') {
       return (
-        <div className="crud-table-card">
-          <h2 className="table-title">Reports</h2>
-          <div className="table-container">
+        <div style={{ padding: '20px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
+          <motion.div
+            key="reports-section"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.4 }}
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '16px',
+              padding: '24px',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+              border: '1px solid #e5e7eb'
+            }}
+          >
+            <h2 style={{ 
+              color: '#2563eb', 
+              fontSize: '24px', 
+              fontWeight: '600', 
+              marginBottom: '20px',
+              textAlign: 'center'
+            }}>
+              Academic Reports
+            </h2>
             {reportLoading ? (
-              <p>Loading...</p>
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                padding: '40px',
+                color: '#6b7280'
+              }}>
+                Loading reports...
+              </div>
             ) : (
-              <table className="crud-table styled-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Title</th>
-                    <th>Student</th>
-                    <th>Grades</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {reports.length === 0 ? (
-                    <tr><td colSpan="4" style={{ textAlign: 'center', color: '#888' }}>No reports found</td></tr>
-                  ) : reports.map((r, idx) => (
-                    <tr key={r.id}>
-                      <td>{idx + 1}</td>
-                      <td>{r.title}</td>
-                      <td>{r.studentName}</td>
-                      <td>{r.grades}</td>
+              <div style={{ 
+                overflowX: 'auto',
+                WebkitOverflowScrolling: 'touch',
+                borderRadius: '12px',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+              }}>
+                <table style={{
+                  width: '100%',
+                  minWidth: '600px',
+                  borderCollapse: 'collapse',
+                  backgroundColor: 'white'
+                }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#374151', color: 'white' }}>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '60px' }}>#</th>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '200px' }}>TITLE</th>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '150px' }}>STUDENT</th>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '100px' }}>GRADES</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {reports.length === 0 && (
+                      <tr>
+                        <td colSpan="4" style={{ 
+                          padding: '20px', 
+                          textAlign: 'center', 
+                          color: '#6b7280',
+                          fontStyle: 'italic'
+                        }}>
+                          No reports found.
+                        </td>
+                      </tr>
+                    )}
+                    {reports.map((r, idx) => (
+                      <tr key={r.id || idx} style={{ 
+                        borderBottom: '1px solid #e5e7eb',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        <td style={{ padding: '16px', fontWeight: '500' }}>{idx + 1}</td>
+                        <td style={{ padding: '16px', fontWeight: '600', color: '#1f2937' }}>{r.title}</td>
+                        <td style={{ padding: '16px', color: '#2563eb' }}>{r.studentName}</td>
+                        <td style={{ padding: '16px' }}>
+                          <span style={{
+                            padding: '4px 12px',
+                            borderRadius: '20px',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            textTransform: 'uppercase',
+                            backgroundColor: '#dcfce7',
+                            color: '#15803d'
+                          }}>
+                            {r.grades}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </div>
+          </motion.div>
         </div>
       );
     }
     if (section === 'attendance') {
       return (
-        <div className="crud-table-card">
-          <h2 className="table-title">Attendance</h2>
-          <div className="table-container">
+        <div style={{ padding: '20px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
+          <motion.div
+            key="attendance-section"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.4 }}
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '16px',
+              padding: '24px',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+              border: '1px solid #e5e7eb'
+            }}
+          >
+            <h2 style={{ 
+              color: '#2563eb', 
+              fontSize: '24px', 
+              fontWeight: '600', 
+              marginBottom: '20px',
+              textAlign: 'center'
+            }}>
+              Attendance Records
+            </h2>
             {attendanceLoading ? (
-              <p>Loading...</p>
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                padding: '40px',
+                color: '#6b7280'
+              }}>
+                Loading attendance...
+              </div>
             ) : (
-              <table className="crud-table styled-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Student</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {attendance.length === 0 ? (
-                    <tr><td colSpan="4" style={{ textAlign: 'center', color: '#888' }}>No attendance records found</td></tr>
-                  ) : attendance.map((a, idx) => (
-                    <tr key={a.id}>
-                      <td>{idx + 1}</td>
-                      <td>{a.studentName}</td>
-                      <td>{a.date}</td>
-                      <td>
-                        <span className={`status-badge ${a.status.toLowerCase() === 'present' ? 'status-present' : a.status.toLowerCase() === 'absent' ? 'status-absent' : 'status-late'}`}>
-                          {a.status}
-                        </span>
-                      </td>
+              <div style={{ 
+                overflowX: 'auto',
+                WebkitOverflowScrolling: 'touch',
+                borderRadius: '12px',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+              }}>
+                <table style={{
+                  width: '100%',
+                  minWidth: '600px',
+                  borderCollapse: 'collapse',
+                  backgroundColor: 'white'
+                }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#374151', color: 'white' }}>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '60px' }}>#</th>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '200px' }}>STUDENT</th>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '150px' }}>DATE</th>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '120px' }}>STATUS</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {attendance.length === 0 && (
+                      <tr>
+                        <td colSpan="4" style={{ 
+                          padding: '20px', 
+                          textAlign: 'center', 
+                          color: '#6b7280',
+                          fontStyle: 'italic'
+                        }}>
+                          No attendance records found.
+                        </td>
+                      </tr>
+                    )}
+                    {attendance.map((a, idx) => (
+                      <tr key={a.id || idx} style={{ 
+                        borderBottom: '1px solid #e5e7eb',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        <td style={{ padding: '16px', fontWeight: '500' }}>{idx + 1}</td>
+                        <td style={{ padding: '16px', fontWeight: '600', color: '#1f2937' }}>{a.studentName}</td>
+                        <td style={{ padding: '16px', color: '#6b7280' }}>{a.date}</td>
+                        <td style={{ padding: '16px' }}>
+                          <span style={{
+                            padding: '4px 12px',
+                            borderRadius: '20px',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            textTransform: 'uppercase',
+                            backgroundColor: 
+                              a.status?.toLowerCase() === 'present' ? '#dcfce7' :
+                              a.status?.toLowerCase() === 'absent' ? '#fee2e2' :
+                              '#fef3c7',
+                            color: 
+                              a.status?.toLowerCase() === 'present' ? '#15803d' :
+                              a.status?.toLowerCase() === 'absent' ? '#dc2626' :
+                              '#d97706'
+                          }}>
+                            {a.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </div>
+          </motion.div>
         </div>
       );
     }
     if (section === 'notifications') {
       return (
-        <div className="crud-table-card">
-          <h2 className="table-title">Notifications</h2>
-          <div className="table-container">
+        <div style={{ padding: '20px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
+          <motion.div
+            key="notifications-section"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.4 }}
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '16px',
+              padding: '24px',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+              border: '1px solid #e5e7eb'
+            }}
+          >
+            <h2 style={{ 
+              color: '#2563eb', 
+              fontSize: '24px', 
+              fontWeight: '600', 
+              marginBottom: '20px',
+              textAlign: 'center'
+            }}>
+              Notifications
+            </h2>
             {notificationLoading ? (
-              <p>Loading...</p>
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                padding: '40px',
+                color: '#6b7280'
+              }}>
+                Loading notifications...
+              </div>
             ) : (
-              <table className="crud-table styled-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Title</th>
-                    <th>Message</th>
-                    <th>Date</th>
-                    <th>Priority</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {notifications.length === 0 ? (
-                    <tr><td colSpan="5" style={{ textAlign: 'center', color: '#888' }}>No notifications found</td></tr>
-                  ) : notifications.map((n, idx) => (
-                    <tr key={n.id}>
-                      <td>{idx + 1}</td>
-                      <td>{n.title}</td>
-                      <td>{n.message}</td>
-                      <td>{n.date}</td>
-                      <td>
-                        <span className={`status-badge priority-${n.priority.toLowerCase()}`}>
-                          {n.priority}
-                        </span>
-                      </td>
+              <div style={{ 
+                overflowX: 'auto',
+                WebkitOverflowScrolling: 'touch',
+                borderRadius: '12px',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+              }}>
+                <table style={{
+                  width: '100%',
+                  minWidth: '600px',
+                  borderCollapse: 'collapse',
+                  backgroundColor: 'white'
+                }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#374151', color: 'white' }}>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '60px' }}>#</th>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '200px' }}>TITLE</th>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '300px' }}>MESSAGE</th>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '120px' }}>DATE</th>
+                      <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '120px' }}>PRIORITY</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {notifications.length === 0 && (
+                      <tr>
+                        <td colSpan="5" style={{ 
+                          padding: '20px', 
+                          textAlign: 'center', 
+                          color: '#6b7280',
+                          fontStyle: 'italic'
+                        }}>
+                          No notifications found.
+                        </td>
+                      </tr>
+                    )}
+                    {notifications.map((n, idx) => (
+                      <tr key={n.id || idx} style={{ 
+                        borderBottom: '1px solid #e5e7eb',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        <td style={{ padding: '16px', fontWeight: '500' }}>{idx + 1}</td>
+                        <td style={{ padding: '16px', fontWeight: '600', color: '#1f2937' }}>{n.title}</td>
+                        <td style={{ padding: '16px', color: '#6b7280', maxWidth: '300px', wordWrap: 'break-word' }}>
+                          {n.message}
+                        </td>
+                        <td style={{ padding: '16px', color: '#6b7280' }}>{n.date}</td>
+                        <td style={{ padding: '16px' }}>
+                          <span style={{
+                            padding: '4px 12px',
+                            borderRadius: '20px',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            textTransform: 'uppercase',
+                            backgroundColor: 
+                              n.priority?.toLowerCase() === 'high' ? '#fee2e2' :
+                              n.priority?.toLowerCase() === 'medium' ? '#fef3c7' :
+                              '#ecfdf5',
+                            color: 
+                              n.priority?.toLowerCase() === 'high' ? '#dc2626' :
+                              n.priority?.toLowerCase() === 'medium' ? '#d97706' :
+                              '#059669'
+                          }}>
+                            {n.priority}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </div>
+          </motion.div>
+        </div>
+      );
+    }
+    
+    if (section === 'courses') {
+      return (
+        <div className="crud-table-card">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="table-title">Available Courses</h2>
+            {courses.length === 0 ? (
+              <div className="no-data-state">
+                <div className="no-data-icon">📚</div>
+                <div className="no-data-text">No courses available yet</div>
+                <div className="no-data-subtext">Check back later for new courses</div>
+              </div>
+            ) : (
+              <div className="course-cards-student">
+                {courses.map((course) => (
+                  <motion.div
+                    key={course.id}
+                    className="course-card-student"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                    whileHover={{ y: -5, boxShadow: "0 20px 40px rgba(0,0,0,0.1)" }}
+                  >
+                    <div className="course-header-student">
+                      <h3 className="course-title-student">{course.title}</h3>
+                      <div className="course-price-student">${course.price}</div>
+                    </div>
+                    <p className="course-description-student">{course.description}</p>
+                    <div className="course-footer-student">
+                      <div className="course-duration-student">
+                        <span className="duration-label">Duration:</span>
+                        <span className="duration-value">{course.duration} weeks</span>
+                      </div>
+                      <button className="enroll-btn">Enroll Now</button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </motion.div>
         </div>
       );
     }
   }
 
-  // Enhanced logout: clear localStorage and redirect
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    navigate('/login', { replace: true });
-  };
-
   return (
     <div className="dashboard-layout">
-      <Sidebar role="student" section={section} onSectionChange={setSection} onLogout={handleLogout} />
+      <Sidebar role="student" section={section} onSectionChange={setSection} />
       <div className="main-content">
         {/* Modern Header */}
         <header className="dashboard-header-bar">
