@@ -1,60 +1,146 @@
-const pool = require('../database/db');
+const { Fee, Student, User } = require('../models');
 
 // Create Fee
-async function createFee(req, res) {
-  const { student_id, amount, due_date, status } = req.body;
+const createFee = async (req, res) => {
   try {
-    const result = await pool.query(
-      'INSERT INTO fees (student_id, amount, due_date, status) VALUES ($1, $2, $3, $4) RETURNING *',
-      [student_id, amount, due_date, status]
-    );
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const { studentName, class: className, amount, status, dueDate, paidDate, paymentMethod, remarks } = req.body;
+    const createdBy = 'default-admin-id'; // For now, we'll use a default admin ID
+    
+    // Try to find student by name to get studentId
+    let studentId = null;
+    const student = await Student.findOne({ where: { name: studentName } });
+    if (student) {
+      studentId = student.id;
+    }
+    
+    const fee = await Fee.create({
+      studentId,
+      studentName,
+      class: className,
+      amount,
+      status: status || 'Pending',
+      dueDate,
+      paidDate,
+      paymentMethod,
+      remarks,
+      createdBy
+    });
+    
+    res.status(201).json(fee);
+  } catch (error) {
+    console.error('Error creating fee:', error);
+    res.status(500).json({ error: 'Failed to create fee' });
   }
-}
+};
 
 // Get All Fees
-async function getAllFees(req, res) {
+const getAllFees = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM fees');
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const fees = await Fee.findAll({
+      include: [
+        {
+          model: Student,
+          as: 'student',
+          attributes: ['name', 'email', 'course'],
+          required: false
+        }
+      ],
+      order: [['dueDate', 'ASC']]
+    });
+    
+    res.json(fees);
+  } catch (error) {
+    console.error('Error fetching fees:', error);
+    res.status(500).json({ error: 'Failed to fetch fees' });
   }
-}
+};
+
+// Get Fee by ID
+const getFeeById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const fee = await Fee.findByPk(id, {
+      include: [
+        {
+          model: Student,
+          as: 'student',
+          attributes: ['name', 'email', 'course'],
+          required: false
+        }
+      ]
+    });
+    
+    if (!fee) {
+      return res.status(404).json({ error: 'Fee record not found' });
+    }
+    
+    res.json(fee);
+  } catch (error) {
+    console.error('Error fetching fee:', error);
+    res.status(500).json({ error: 'Failed to fetch fee' });
+  }
+};
 
 // Update Fee
-async function updateFee(req, res) {
-  const { id } = req.params;
-  const { amount, due_date, status } = req.body;
+const updateFee = async (req, res) => {
   try {
-    const result = await pool.query(
-      'UPDATE fees SET amount=$1, due_date=$2, status=$3 WHERE id=$4 RETURNING *',
-      [amount, due_date, status, id]
-    );
-    if (result.rows.length === 0) return res.sendStatus(404);
-    res.json(result.rows[0]);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const { id } = req.params;
+    const { studentName, class: className, amount, status, dueDate, paidDate, paymentMethod, remarks } = req.body;
+    
+    const fee = await Fee.findByPk(id);
+    if (!fee) {
+      return res.status(404).json({ error: 'Fee record not found' });
+    }
+    
+    // Try to find student by name to get studentId
+    let studentId = fee.studentId;
+    const student = await Student.findOne({ where: { name: studentName } });
+    if (student) {
+      studentId = student.id;
+    }
+    
+    await fee.update({
+      studentId,
+      studentName,
+      class: className,
+      amount,
+      status,
+      dueDate,
+      paidDate,
+      paymentMethod,
+      remarks
+    });
+    
+    res.json(fee);
+  } catch (error) {
+    console.error('Error updating fee:', error);
+    res.status(500).json({ error: 'Failed to update fee' });
   }
-}
+};
 
 // Delete Fee
-async function deleteFee(req, res) {
-  const { id } = req.params;
+const deleteFee = async (req, res) => {
   try {
-    const result = await pool.query('DELETE FROM fees WHERE id=$1 RETURNING *', [id]);
-    if (result.rows.length === 0) return res.sendStatus(404);
-    res.json({ message: 'Fee deleted' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const { id } = req.params;
+    
+    const fee = await Fee.findByPk(id);
+    if (!fee) {
+      return res.status(404).json({ error: 'Fee record not found' });
+    }
+    
+    await fee.destroy();
+    
+    res.json({ message: 'Fee record deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting fee:', error);
+    res.status(500).json({ error: 'Failed to delete fee' });
   }
-}
+};
 
 module.exports = {
   createFee,
   getAllFees,
+  getFeeById,
   updateFee,
-  deleteFee,
+  deleteFee
 };

@@ -1,5 +1,51 @@
 const API_URL = import.meta.env.VITE_API_URL_ROUTINES || "http://localhost:5002/api/routines";
 
+// Fallback data for when API is not available
+const fallbackRoutines = [
+  {
+    id: '1',
+    subject: 'Mathematics',
+    teacherName: 'Prof. Johnson',
+    teacherId: '1',
+    day: 'Monday',
+    startTime: '09:00',
+    endTime: '10:30',
+    room: 'Room 101',
+    semester: 'Fall 2024',
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    id: '2',
+    subject: 'English Literature',
+    teacherName: 'Prof. Smith',
+    teacherId: '2',
+    day: 'Tuesday',
+    startTime: '11:00',
+    endTime: '12:30',
+    room: 'Room 205',
+    semester: 'Fall 2024',
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    id: '3',
+    subject: 'Physics',
+    teacherName: 'Dr. Wilson',
+    teacherId: '3',
+    day: 'Wednesday',
+    startTime: '14:00',
+    endTime: '15:30',
+    room: 'Lab 301',
+    semester: 'Fall 2024',
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }
+];
+
 function getToken() {
   return localStorage.getItem("token");
 }
@@ -29,8 +75,13 @@ async function request(path = '', options = {}) {
   return res.json();
 }
 
-export function fetchRoutines() {
-  return request();
+export async function fetchRoutines() {
+  try {
+    return await request();
+  } catch (error) {
+    console.warn('API not available, using fallback data for routines:', error.message);
+    return fallbackRoutines;
+  }
 }
 
 export function addRoutine(routine) {

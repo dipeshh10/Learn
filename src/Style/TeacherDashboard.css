@@ -638,6 +638,7 @@ html, body {
 .course-modal {
   max-width: 600px;
   width: 95vw;
+  user-select: none; /* Prevent text selection during interactions */
 }
 
 .course-modal .modal-header {
@@ -665,6 +666,7 @@ html, body {
   padding: 4px 8px;
   border-radius: 6px;
   transition: all 0.2s ease;
+  user-select: none;
 }
 
 .course-modal .modal-close:hover {
@@ -694,6 +696,7 @@ html, body {
   font-weight: 600;
   color: #374151;
   font-size: 14px;
+  user-select: none;
 }
 
 .course-form input,
@@ -705,6 +708,7 @@ html, body {
   transition: all 0.2s ease;
   background: #ffffff;
   outline: none;
+  user-select: text; /* Allow text selection in inputs */
 }
 
 .course-form input:focus,
@@ -737,6 +741,12 @@ html, body {
   font-weight: 600;
   transition: all 0.2s ease;
   min-width: 120px;
+  user-select: none;
+  outline: none;
+}
+
+.course-form .btn:focus {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .course-form .btn-primary {
@@ -750,6 +760,11 @@ html, body {
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
+.course-form .btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+}
+
 .course-form .btn-secondary {
   background: #f3f4f6;
   color: #6b7280;
@@ -759,6 +774,10 @@ html, body {
 .course-form .btn-secondary:hover {
   background: #e5e7eb;
   color: #374151;
+}
+
+.course-form .btn-secondary:active {
+  background: #d1d5db;
 }
 
 /* Course Cards Responsive Design */

@@ -1,86 +1,149 @@
-const pool = require('../database/db');
+const { Report, Student } = require('../models');
+console.log('Report model loaded:', typeof Report);
+console.log('Student model loaded:', typeof Student);
 
 // Create Report
-async function createReport(req, res) {
-  const { student_id, report_text } = req.body;
-  const teacher_id = req.user.id;
+const createReport = async (req, res) => {
   try {
-    const result = await pool.query(
-      'INSERT INTO reports (student_id, teacher_id, report_text) VALUES ($1, $2, $3) RETURNING *',
-      [student_id, teacher_id, report_text]
-    );
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-}
-
-// Get All Reports (admin/teacher)
-async function getAllReports(req, res) {
-  try {
-    let result;
-    if (req.user.role === 'admin') {
-      result = await pool.query('SELECT * FROM reports');
-    } else if (req.user.role === 'teacher') {
-      result = await pool.query('SELECT * FROM reports WHERE teacher_id = $1', [req.user.id]);
-    } else {
-      return res.sendStatus(403);
+    const { title, studentName, grades, date, remarks } = req.body;
+    const createdBy = 'default-admin-id'; // For now, we'll use a default admin ID
+    
+    // Try to find student by name to get studentId
+    let studentId = null;
+    const student = await Student.findOne({ where: { name: studentName } });
+    if (student) {
+      studentId = student.id;
     }
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    
+    const report = await Report.create({
+      title,
+      studentId,
+      studentName,
+      grades,
+      date,
+      remarks,
+      createdBy
+    });
+    
+    res.status(201).json(report);
+  } catch (error) {
+    console.error('Error creating report:', error);
+    res.status(500).json({ error: 'Failed to create report' });
   }
-}
+};
 
-// Get Reports for a Student (student only)
-async function getStudentReports(req, res) {
+// Get All Reports
+const getAllReports = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM reports WHERE student_id = $1', [req.user.id]);
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const reports = await Report.findAll({
+      include: [
+        {
+          model: Student,
+          as: 'student',
+          attributes: ['name', 'email', 'course'],
+          required: false
+        }
+      ],
+      order: [['date', 'DESC'], ['studentName']]
+    });
+    
+    res.json(reports);
+  } catch (error) {
+    console.error('Error fetching reports:', error);
+    res.status(500).json({ error: 'Failed to fetch reports' });
   }
-}
+};
 
-// Update Report (teacher only)
-async function updateReport(req, res) {
-  const { id } = req.params;
-  const { report_text } = req.body;
+// Get Report by ID
+const getReportById = async (req, res) => {
   try {
-    const result = await pool.query(
-      'UPDATE reports SET report_text=$1 WHERE id=$2 AND teacher_id=$3 RETURNING *',
-      [report_text, id, req.user.id]
-    );
-    if (result.rows.length === 0) return res.sendStatus(404);
-    res.json(result.rows[0]);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-}
-
-// Delete Report (admin/teacher)
-async function deleteReport(req, res) {
-  const { id } = req.params;
-  try {
-    let result;
-    if (req.user.role === 'admin') {
-      result = await pool.query('DELETE FROM reports WHERE id=$1 RETURNING *', [id]);
-    } else if (req.user.role === 'teacher') {
-      result = await pool.query('DELETE FROM reports WHERE id=$1 AND teacher_id=$2 RETURNING *', [id, req.user.id]);
-    } else {
-      return res.sendStatus(403);
+    const { id } = req.params;
+    const report = await Report.findByPk(id, {
+      include: [
+        {
+          model: Student,
+          as: 'student',
+          attributes: ['name', 'email', 'course'],
+          required: false
+        }
+      ]
+    });
+    
+    if (!report) {
+      return res.status(404).json({ error: 'Report not found' });
     }
-    if (result.rows.length === 0) return res.sendStatus(404);
-    res.json({ message: 'Report deleted' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    
+    res.json(report);
+  } catch (error) {
+    console.error('Error fetching report:', error);
+    res.status(500).json({ error: 'Failed to fetch report' });
   }
-}
+};
+
+// Update Report
+const updateReport = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, studentName, grades, date, remarks } = req.body;
+    
+    const report = await Report.findByPk(id);
+    if (!report) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    
+    // Try to find student by name to get studentId
+    let studentId = report.studentId;
+    const student = await Student.findOne({ where: { name: studentName } });
+    if (student) {
+      studentId = student.id;
+    }
+    
+    await report.update({
+      title,
+      studentId,
+      studentName,
+      grades,
+      date,
+      remarks
+    });
+    
+    res.json(report);
+  } catch (error) {
+    console.error('Error updating report:', error);
+    res.status(500).json({ error: 'Failed to update report' });
+  }
+};
+
+// Delete Report
+const deleteReport = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const report = await Report.findByPk(id);
+    if (!report) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    
+    await report.destroy();
+    
+    res.json({ message: 'Report deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting report:', error);
+    res.status(500).json({ error: 'Failed to delete report' });
+  }
+};
 
 module.exports = {
   createReport,
   getAllReports,
-  getStudentReports,
+  getReportById,
   updateReport,
-  deleteReport,
+  deleteReport
+};
+module.exports = {
+  createReport,
+  getAllReports,
+  getReportById,
+  updateReport,
+  deleteReport
 };

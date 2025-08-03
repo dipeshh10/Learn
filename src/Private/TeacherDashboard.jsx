@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from 'react-router-dom';
@@ -13,7 +12,7 @@ import threeImg from '../assets/three.png';
 import fourImg from '../assets/four.png';
 import '../Style/TeacherDashboard.css';
 import { FaClipboardList, FaClipboardCheck, FaBell, FaEdit, FaTrash } from 'react-icons/fa';
-import { fetchStudents } from "../Services/studentApi";
+import { fetchStudents, addStudent, deleteStudent } from "../Services/studentApi";
 import { fetchNotifications } from "../Services/notificationApi";
 import {
   fetchReports,
@@ -27,6 +26,7 @@ import {
   updateAttendance,
   deleteAttendance
 } from "../Services/attendenceApi";
+import { addTeacher } from "../Services/teacherApi";
 
 const TeacherDashboard = () => {
   const navigate = useNavigate();
@@ -50,13 +50,21 @@ const TeacherDashboard = () => {
       navigate('/login', { replace: true });
     }
   }, [navigate]);
-  
+
   // Load courses from localStorage on mount
   useEffect(() => {
     const savedCourses = localStorage.getItem('courses');
     if (savedCourses) {
       setCourses(JSON.parse(savedCourses));
     }
+  }, []);
+
+  // Load initial data from database on mount
+  useEffect(() => {
+    loadStudents();
+    loadReports();
+    loadNotifications();
+    loadAttendance();
   }, []);
   
   const role = 'teacher';
@@ -94,35 +102,98 @@ const TeacherDashboard = () => {
 
   // Students handlers
   const handleStudentEdit = (s) => { setStudentEditId(s.id); setStudentForm({ name: s.name, email: s.email, class: s.class }); };
-  const handleStudentDelete = (id) => setStudents(students.filter((s) => s.id !== id));
+  const handleStudentDelete = async (id) => {
+    try {
+      if (window.confirm('Are you sure you want to delete this student?')) {
+        await deleteStudent(id);
+        setStudents(students.filter((s) => s.id !== id));
+        await loadStudents(); // Refresh from database
+      }
+    } catch (error) {
+      alert('Failed to delete student: ' + error.message);
+    }
+  };
   const handleStudentChange = (e) => setStudentForm({ ...studentForm, [e.target.name]: e.target.value });
   const handleStudentSave = () => { setStudents(students.map((s) => (s.id === studentEditId ? { ...s, ...studentForm } : s))); setStudentEditId(null); setStudentForm({ name: '', email: '', class: '' }); };
-  const handleStudentAdd = () => { setStudents([...students, { id: Date.now(), ...studentForm }]); setStudentForm({ name: '', email: '', class: '' }); };
+  const handleStudentAdd = async () => {
+    try {
+      // Call API to save student to database
+      const newStudent = await addStudent({
+        name: studentForm.name,
+        email: studentForm.email,
+        course: studentForm.class || 'General',
+        fees: '0'
+      });
+
+      // Update local state and refresh from database
+      setStudents([...students, newStudent]);
+      setStudentForm({ name: '', email: '', class: '' });
+
+      // Refresh the student list from database
+      await loadStudents();
+    } catch (error) {
+      alert('Failed to add student: ' + error.message);
+    }
+  };
 
   // Courses handlers
   const handleCourseChange = (e) => setCourseForm({ ...courseForm, [e.target.name]: e.target.value });
   const handleCourseEdit = (c) => { setCourseEditId(c.id); setCourseForm({ title: c.title, description: c.description, duration: c.duration, price: c.price }); setShowCourseModal(true); };
-  const handleCourseSave = () => { 
-    const updatedCourses = courses.map((c) => (c.id === courseEditId ? { ...c, ...courseForm } : c));
-    setCourses(updatedCourses);
-    localStorage.setItem('courses', JSON.stringify(updatedCourses));
-    setCourseEditId(null); 
-    setCourseForm({ title: '', description: '', duration: '', price: '' }); 
-    setShowCourseModal(false);
+  const handleCourseSave = (e) => { 
+    e.preventDefault(); // Prevent default form submission
+    
+    // Basic form validation
+    if (!courseForm.title.trim()) {
+      alert('Please enter a course title');
+      return;
+    }
+    if (!courseForm.description.trim()) {
+      alert('Please enter a course description');
+      return;
+    }
+    if (!courseForm.duration || courseForm.duration < 1) {
+      alert('Please enter a valid duration');
+      return;
+    }
+    if (!courseForm.price || courseForm.price < 0) {
+      alert('Please enter a valid price');
+      return;
+    }
+    
+    try {
+      if (courseEditId) {
+        const updatedCourses = courses.map((c) => (c.id === courseEditId ? { ...c, ...courseForm } : c));
+        setCourses(updatedCourses);
+        localStorage.setItem('courses', JSON.stringify(updatedCourses));
+        setCourseEditId(null); 
+      } else {
+        const newCourse = { id: Date.now(), ...courseForm, teacher: 'Current Teacher', createdAt: new Date().toISOString() };
+        const updatedCourses = [...courses, newCourse];
+        setCourses(updatedCourses);
+        localStorage.setItem('courses', JSON.stringify(updatedCourses));
+      }
+      setCourseForm({ title: '', description: '', duration: '', price: '' }); 
+      setShowCourseModal(false);
+    } catch (error) {
+      console.error('Error saving course:', error);
+      alert('Error saving course. Please try again.');
+    }
   };
   const handleCourseAdd = () => { 
-    const newCourse = { id: Date.now(), ...courseForm, teacher: 'Current Teacher', createdAt: new Date().toISOString() };
-    const updatedCourses = [...courses, newCourse];
-    setCourses(updatedCourses);
-    localStorage.setItem('courses', JSON.stringify(updatedCourses));
     setCourseForm({ title: '', description: '', duration: '', price: '' }); 
-    setShowCourseModal(false);
+    setCourseEditId(null);
+    setShowCourseModal(true);
   };
   const handleCourseDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this course?')) {
-      const updatedCourses = courses.filter(c => c.id !== id);
-      setCourses(updatedCourses);
-      localStorage.setItem('courses', JSON.stringify(updatedCourses));
+    try {
+      if (window.confirm('Are you sure you want to delete this course?')) {
+        const updatedCourses = courses.filter(c => c.id !== id);
+        setCourses(updatedCourses);
+        localStorage.setItem('courses', JSON.stringify(updatedCourses));
+      }
+    } catch (error) {
+      console.error('Error deleting course:', error);
+      alert('Error deleting course. Please try again.');
     }
   };
 
@@ -203,7 +274,7 @@ const TeacherDashboard = () => {
 
   async function handleReportAdd() {
     try {
-      await addReport(reportForm);
+      await addTeacher(reportForm);
       setReportForm({ title: "", studentName: "", grades: "" });
       loadReports();
     } catch (e) {
@@ -368,11 +439,7 @@ const TeacherDashboard = () => {
             
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
               <button 
-                onClick={() => { 
-                  setCourseForm({ title: '', description: '', duration: '', price: '' });
-                  setCourseEditId(null);
-                  setShowCourseModal(true);
-                }}
+                onClick={handleCourseAdd}
                 style={{
                   backgroundColor: '#2563eb',
                   color: 'white',

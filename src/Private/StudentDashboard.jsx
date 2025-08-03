@@ -18,6 +18,7 @@ import { fetchFees } from "../Services/feeApi";
 import { fetchNotifications } from "../Services/notificationApi";
 import { fetchReports } from "../Services/reportApi";
 import { fetchAttendance } from "../Services/attendenceApi";
+import { fetchCourses } from "../Services/coursesApi";
 
 const StudentDashboard = () => {
   const [section, setSection] = useState('home');
@@ -36,6 +37,7 @@ const StudentDashboard = () => {
   const [notifications, setNotifications] = useState([]);
   const [notificationLoading, setNotificationLoading] = useState(true);
   const [courses, setCourses] = useState([]);
+  const [coursesLoading, setCoursesLoading] = useState(true);
 
   useEffect(() => {
     if (section === 'routine') {
@@ -61,12 +63,25 @@ const StudentDashboard = () => {
     }
   }, [section]);
 
-  // Load courses from localStorage (shared with teacher)
-  function loadCourses() {
-    const savedCourses = localStorage.getItem('courses');
-    if (savedCourses) {
-      setCourses(JSON.parse(savedCourses));
+  // Load courses from API (shared data from admin/teacher portal)
+  async function loadCourses() {
+    setCoursesLoading(true);
+    try {
+      const data = await fetchCourses();
+      console.log('📚 Loaded courses from API:', data);
+      setCourses(data);
+    } catch (e) {
+      console.error('❌ Error loading courses:', e);
+      // Fallback to localStorage for backward compatibility
+      const savedCourses = localStorage.getItem('courses');
+      if (savedCourses) {
+        console.log('📚 Fallback: Loading courses from localStorage');
+        setCourses(JSON.parse(savedCourses));
+      } else {
+        alert(`Error loading courses: ${e.message}`);
+      }
     }
+    setCoursesLoading(false);
   }
 
   async function loadRoutines() {
@@ -162,8 +177,8 @@ const StudentDashboard = () => {
               <div className="overview-card-value">{notifications.length}</div>
             </div>
           </div>
-          {/* Why SMART SHIKSHA Section */}
-          <div className="why-LearnX-section">
+          {/* Why LearnX Section */}
+          <div className="why-smart-shiksha-section">
             <h2 className="why-title">Why LearnX?</h2>
             <div className="why-features-row">
               <div className="why-feature-card">
@@ -940,53 +955,6 @@ const StudentDashboard = () => {
         </div>
       );
     }
-    
-    if (section === 'courses') {
-      return (
-        <div className="crud-table-card">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h2 className="table-title">Available Courses</h2>
-            {courses.length === 0 ? (
-              <div className="no-data-state">
-                <div className="no-data-icon">📚</div>
-                <div className="no-data-text">No courses available yet</div>
-                <div className="no-data-subtext">Check back later for new courses</div>
-              </div>
-            ) : (
-              <div className="course-cards-student">
-                {courses.map((course) => (
-                  <motion.div
-                    key={course.id}
-                    className="course-card-student"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3 }}
-                    whileHover={{ y: -5, boxShadow: "0 20px 40px rgba(0,0,0,0.1)" }}
-                  >
-                    <div className="course-header-student">
-                      <h3 className="course-title-student">{course.title}</h3>
-                      <div className="course-price-student">${course.price}</div>
-                    </div>
-                    <p className="course-description-student">{course.description}</p>
-                    <div className="course-footer-student">
-                      <div className="course-duration-student">
-                        <span className="duration-label">Duration:</span>
-                        <span className="duration-value">{course.duration} weeks</span>
-                      </div>
-                      <button className="enroll-btn">Enroll Now</button>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </motion.div>
-        </div>
-      );
-    }
   }
 
   return (
@@ -997,7 +965,7 @@ const StudentDashboard = () => {
         <header className="dashboard-header-bar">
           <div className="header-left">
             <img src={logoIcon} alt="Logo" className="header-logo" />
-            <span className="header-appname">SMART SHIKSHA</span>
+            <span className="header-appname">LearnX</span>
           </div>
           <div className="header-right">
             <span className="header-avatar">S</span>
@@ -1009,7 +977,7 @@ const StudentDashboard = () => {
         </section>
       </div>
       <footer className="dashboard-footer">
-        Designed and Developed for Smart Shiksha
+        Designed and Developed for LearnX
       </footer>
     </div>
   );

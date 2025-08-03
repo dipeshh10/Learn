@@ -3,7 +3,19 @@ const router = express.Router();
 
 // In-memory user database (replace with real database in production)
 let users = [
-  { id: 1, name: 'Admin User', email: 'admin@learnx.com', password: 'admin123', role: 'admin' }
+  { id: 1, name: 'Admin User', email: 'admin@learnx.com', password: 'admin123', role: 'admin' },
+  { id: 2, name: 'John Teacher', email: 'teacher@learnx.com', password: 'teacher123', role: 'teacher' },
+  { id: 3, name: 'Jane Student', email: 'student@learnx.com', password: 'student123', role: 'student' },
+  // Alternative simple credentials for testing
+  { id: 4, name: 'Admin', email: 'admin@admin.com', password: 'admin', role: 'admin' },
+  { id: 5, name: 'Teacher', email: 'teacher@teacher.com', password: 'teacher', role: 'teacher' },
+  { id: 6, name: 'Student', email: 'student@student.com', password: 'student', role: 'student' },
+  // Custom credentials as requested
+  { id: 7, name: 'Test Teacher', email: 'testteacher@gmail.com', password: 'admin123', role: 'teacher' },
+  { id: 8, name: 'Test Student', email: 'teststudent@gmail.com', password: 'admin123', role: 'student' },
+  // Custom credentials as requested
+  { id: 7, name: 'Test Teacher', email: 'testteacher@gmail.com', password: 'admin123', role: 'teacher' },
+  { id: 8, name: 'Test Student', email: 'teststudent@gmail.com', password: 'admin123', role: 'student' }
 ];
 
 // Test route
@@ -53,7 +65,11 @@ router.post('/signup', (req, res) => {
 router.post('/login', (req, res) => {
   const { email, password, role } = req.body;
   
+  console.log('Login attempt:', { email, password: password ? '[PROVIDED]' : '[MISSING]', role });
+  console.log('Available users:', users.map(u => ({ email: u.email, role: u.role })));
+  
   if (!email || !password) {
+    console.log('Missing email or password');
     return res.status(400).json({ 
       success: false, 
       message: 'Email and password are required' 
@@ -64,6 +80,7 @@ router.post('/login', (req, res) => {
   const user = users.find(u => u.email === email);
   
   if (!user) {
+    console.log('User not found with email:', email);
     return res.status(401).json({ 
       success: false, 
       message: 'Invalid email or password' 
@@ -72,6 +89,8 @@ router.post('/login', (req, res) => {
 
   // Check password
   if (user.password !== password) {
+    console.log('Password mismatch for user:', email);
+    console.log('Expected:', user.password, 'Received:', password);
     return res.status(401).json({ 
       success: false, 
       message: 'Invalid email or password' 
@@ -80,12 +99,15 @@ router.post('/login', (req, res) => {
 
   // Check role if specified
   if (role && user.role !== role) {
+    console.log('Role mismatch. Expected:', role, 'User role:', user.role);
     return res.status(403).json({ 
       success: false, 
       message: `Access denied. This account is not registered as ${role}` 
     });
   }
 
+  console.log('Login successful for user:', user.email, 'Role:', user.role);
+  
   res.json({
     success: true,
     message: 'Login successful!',

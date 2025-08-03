@@ -32,7 +32,8 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5002/api/signup', {
+      // First try the auth endpoint
+      let res = await fetch('http://localhost:5002/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -42,9 +43,27 @@ const Signup = () => {
           role: form.role
         }),
       });
+      
+      // If auth endpoint fails, try the regular signup endpoint
+      if (!res.ok && res.status === 404) {
+        console.log('Auth endpoint not found, trying regular signup...');
+        res = await fetch('http://localhost:5002/api/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: form.username.trim(),
+            email: form.email.trim(),
+            password: form.password,
+            role: form.role
+          }),
+        });
+      }
+      
       const data = await res.json();
+      console.log('Signup response:', data);
+      
       if (!res.ok) {
-        if (res.status === 400 && data.message.includes('already exists')) {
+        if (res.status === 400 && data.message && data.message.includes('already exists')) {
           setError('User with this email is already registered. Please use a different email or login.');
         } else {
           setError(data.message || 'Signup failed');
@@ -55,8 +74,8 @@ const Signup = () => {
       setTimeout(() => navigate('/login'), 1500);
     } catch (err) {
       console.error('Signup error:', err);
-      if (err.message.includes('fetch')) {
-        setError('Unable to connect to server. Please make sure the backend server is running.');
+      if (err.message.includes('fetch') || err.name === 'TypeError') {
+        setError('Unable to connect to server. Please make sure the backend server is running on port 5002.');
       } else {
         setError(err.message || 'An unexpected error occurred. Please try again.');
       }

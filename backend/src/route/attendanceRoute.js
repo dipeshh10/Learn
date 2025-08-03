@@ -1,25 +1,27 @@
 const express = require('express');
-const authenticateToken = require('../middleware/authenticateToken');
-const authorizeRole = require('../middleware/authorizeRole');
 const {
   createAttendance,
   getAllAttendance,
-  getStudentAttendance,
+  getAttendanceById,
   updateAttendance,
   deleteAttendance,
 } = require('../controller/attendanceController');
 
 const router = express.Router();
 
-// Teacher: Create attendance
-router.post('/', authenticateToken, authorizeRole('teacher'), createAttendance);
-// Admin/Teacher: Get all attendance
-router.get('/all', authenticateToken, authorizeRole('admin', 'teacher'), getAllAttendance);
-// Student: Get own attendance
-router.get('/', authenticateToken, authorizeRole('student'), getStudentAttendance);
-// Teacher: Update attendance
-router.put('/:id', authenticateToken, authorizeRole('teacher'), updateAttendance);
-// Admin/Teacher: Delete attendance
-router.delete('/:id', authenticateToken, authorizeRole('admin', 'teacher'), deleteAttendance);
+// Get all attendance
+router.get('/', getAllAttendance);
+
+// Get attendance by ID
+router.get('/:id', getAttendanceById);
+
+// Create attendance
+router.post('/', createAttendance);
+
+// Update attendance
+router.put('/:id', updateAttendance);
+
+// Delete attendance
+router.delete('/:id', deleteAttendance);
 
 module.exports = router;

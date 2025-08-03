@@ -1,61 +1,123 @@
-const pool = require('../database/db');
+const { LearningMaterial, User } = require('../models');
 
 // Create Learning Material
-async function createLearningMaterial(req, res) {
-  const { title, description, file_url } = req.body;
-  const uploaded_by = req.user.id;
+const createLearningMaterial = async (req, res) => {
   try {
-    const result = await pool.query(
-      'INSERT INTO learning_materials (title, description, file_url, uploaded_by) VALUES ($1, $2, $3, $4) RETURNING *',
-      [title, description, file_url, uploaded_by]
-    );
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const { title, type, url, description, subject } = req.body;
+    const createdBy = 'default-admin-id'; // For now, we'll use a default admin ID
+    
+    const learningMaterial = await LearningMaterial.create({
+      title,
+      type,
+      url,
+      description,
+      subject,
+      createdBy
+    });
+    
+    res.status(201).json(learningMaterial);
+  } catch (error) {
+    console.error('Error creating learning material:', error);
+    res.status(500).json({ error: 'Failed to create learning material' });
   }
-}
+};
 
 // Get All Learning Materials
-async function getAllLearningMaterials(req, res) {
+const getAllLearningMaterials = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM learning_materials');
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const learningMaterials = await LearningMaterial.findAll({
+      where: { isPublished: true },
+      include: [
+        {
+          model: User,
+          as: 'creator',
+          attributes: ['name', 'email']
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+    
+    res.json(learningMaterials);
+  } catch (error) {
+    console.error('Error fetching learning materials:', error);
+    res.status(500).json({ error: 'Failed to fetch learning materials' });
   }
-}
+};
+
+// Get Learning Material by ID
+const getLearningMaterialById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const learningMaterial = await LearningMaterial.findByPk(id, {
+      include: [
+        {
+          model: User,
+          as: 'creator',
+          attributes: ['name', 'email']
+        }
+      ]
+    });
+    
+    if (!learningMaterial || !learningMaterial.isPublished) {
+      return res.status(404).json({ error: 'Learning material not found' });
+    }
+    
+    res.json(learningMaterial);
+  } catch (error) {
+    console.error('Error fetching learning material:', error);
+    res.status(500).json({ error: 'Failed to fetch learning material' });
+  }
+};
 
 // Update Learning Material
-async function updateLearningMaterial(req, res) {
-  const { id } = req.params;
-  const { title, description, file_url } = req.body;
+const updateLearningMaterial = async (req, res) => {
   try {
-    const result = await pool.query(
-      'UPDATE learning_materials SET title=$1, description=$2, file_url=$3 WHERE id=$4 RETURNING *',
-      [title, description, file_url, id]
-    );
-    if (result.rows.length === 0) return res.sendStatus(404);
-    res.json(result.rows[0]);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const { id } = req.params;
+    const { title, type, url, description, subject } = req.body;
+    
+    const learningMaterial = await LearningMaterial.findByPk(id);
+    if (!learningMaterial) {
+      return res.status(404).json({ error: 'Learning material not found' });
+    }
+    
+    await learningMaterial.update({
+      title,
+      type,
+      url,
+      description,
+      subject
+    });
+    
+    res.json(learningMaterial);
+  } catch (error) {
+    console.error('Error updating learning material:', error);
+    res.status(500).json({ error: 'Failed to update learning material' });
   }
-}
+};
 
 // Delete Learning Material
-async function deleteLearningMaterial(req, res) {
-  const { id } = req.params;
+const deleteLearningMaterial = async (req, res) => {
   try {
-    const result = await pool.query('DELETE FROM learning_materials WHERE id=$1 RETURNING *', [id]);
-    if (result.rows.length === 0) return res.sendStatus(404);
-    res.json({ message: 'Learning material deleted' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const { id } = req.params;
+    
+    const learningMaterial = await LearningMaterial.findByPk(id);
+    if (!learningMaterial) {
+      return res.status(404).json({ error: 'Learning material not found' });
+    }
+    
+    await learningMaterial.destroy();
+    
+    res.json({ message: 'Learning material deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting learning material:', error);
+    res.status(500).json({ error: 'Failed to delete learning material' });
   }
-}
+};
 
 module.exports = {
   createLearningMaterial,
   getAllLearningMaterials,
+  getLearningMaterialById,
   updateLearningMaterial,
-  deleteLearningMaterial,
+  deleteLearningMaterial
 };

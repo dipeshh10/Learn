@@ -7,7 +7,6 @@
   margin-left: auto;
   margin-right: auto;
   padding: 20px;
-  transform: scale(1.15);
   transform-origin: center top;
 }
 
@@ -36,7 +35,7 @@
 }
 
 .overview-card:hover, .overview-card:focus-within {
-  transform: translateY(-6px) scale(1.05);
+  transform: translateY(-4px) scale(1.02);
   box-shadow: 0 16px 40px rgba(37, 99, 235, 0.20);
   outline: none;
 }
@@ -97,7 +96,7 @@
 
 .feature-card:hover, .feature-card:focus-within,
 .why-feature-card:hover, .why-feature-card:focus-within {
-  transform: translateY(-4px) scale(1.03);
+  transform: translateY(-2px) scale(1.01);
   box-shadow: 0 12px 30px rgba(37, 99, 235, 0.15);
   outline: none;
 }
@@ -148,7 +147,7 @@
   color: #1e293b;
 }
 
-/* Why Smart Shiksha Section */
+/* Why LearnX Section */
 .why-smart-shiksha-section {
   margin: 3.5rem 0 2.5rem 0;
 }
@@ -390,31 +389,69 @@
   color: #94a3b8;
 }
 
+/* General layout improvements */
+.dashboard-overview {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.overview-cards-row {
+  max-width: 100%;
+  justify-content: center;
+}
+
+.why-smart-shiksha-section {
+  max-width: 1000px;
+  margin: 2rem auto;
+}
+
+.features-section {
+  max-width: 1200px;
+  margin: 2rem auto;
+}
+
 /* Responsive design for student courses */
 @media (max-width: 768px) {
   .course-cards-student {
     grid-template-columns: 1fr;
     gap: 16px;
   }
-  
+
   .course-header-student {
     flex-direction: column;
     gap: 12px;
     align-items: flex-start;
   }
-  
+
   .course-title-student {
     margin-right: 0;
   }
-  
+
   .course-footer-student {
     flex-direction: column;
     gap: 16px;
     align-items: flex-start;
   }
-  
+
   .enroll-btn {
     width: 100%;
     padding: 12px 20px;
+  }
+
+  .dashboard-overview {
+    padding: 15px;
+  }
+
+  .overview-cards-row {
+    gap: 1rem;
+  }
+
+  .why-features-row {
+    gap: 1rem;
+  }
+
+  .features-row {
+    gap: 1rem;
   }
 }

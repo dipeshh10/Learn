@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaHome, FaUserGraduate, FaChalkboardTeacher, FaCalendarAlt, FaBook, FaMoneyBillWave, FaClipboardList, FaUsers, FaClipboardCheck, FaSignOutAlt, FaBell, FaGraduationCap } from 'react-icons/fa';
 import '../Style/Slidebar.css';
 import logoIcon from '../assets/LearnX.png';
 
-const navConfig = {
+const defaultNavConfig = {
   admin: [
     { label: 'Home', key: 'home', icon: <FaHome /> },
     { label: 'Students', key: 'students', icon: <FaUserGraduate /> },
@@ -40,9 +40,25 @@ const navConfig = {
   ],
 };
 
+function getSidebarConfig(role) {
+  const saved = localStorage.getItem(`sidebar_${role}`);
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return defaultNavConfig[role];
+    }
+  }
+  return defaultNavConfig[role];
+}
+
 const Sidebar = ({ role, section, onSectionChange, onLogout }) => {
-  const navItems = navConfig[role] || [];
+  const [navItems, setNavItems] = useState(getSidebarConfig(role));
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setNavItems(getSidebarConfig(role));
+  }, [role]);
 
   const handleLogout = () => {
     console.log('Logout clicked');
@@ -57,11 +73,9 @@ const Sidebar = ({ role, section, onSectionChange, onLogout }) => {
   };
 
   const handleItemClick = (item) => {
-    console.log('Sidebar item clicked:', item.key);
     if (item.isLogout) {
       handleLogout();
     } else {
-      console.log('Calling onSectionChange with:', item.key);
       onSectionChange(item.key);
     }
   };
@@ -77,7 +91,7 @@ const Sidebar = ({ role, section, onSectionChange, onLogout }) => {
 
       {/* Navigation Section */}
       <nav className="sidebar-nav">
-        {navItems.filter(item => !item.isLogout).map((item, index) => (
+        {navItems.filter(item => !item.isLogout).map((item) => (
           <button
             key={item.key}
             onClick={() => handleItemClick(item)}

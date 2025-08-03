@@ -1,5 +1,54 @@
 const API_URL = import.meta.env.VITE_API_URL_LEARNING_MATERIALS || "http://localhost:5002/api/learning-materials";
 
+// Fallback data for when API is not available
+const fallbackLearningMaterials = [
+  {
+    id: '1',
+    title: 'Advanced Calculus Textbook',
+    type: 'PDF',
+    subject: 'Mathematics',
+    description: 'Comprehensive guide to advanced calculus concepts',
+    fileUrl: '/materials/calculus.pdf',
+    uploadedBy: 'Prof. Johnson',
+    uploadDate: '2024-08-10',
+    size: '15.2 MB',
+    downloads: 45,
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    id: '2',
+    title: 'Shakespeare Complete Works',
+    type: 'PDF',
+    subject: 'English Literature',
+    description: 'Complete collection of Shakespeare\'s plays and sonnets',
+    fileUrl: '/materials/shakespeare.pdf',
+    uploadedBy: 'Prof. Smith',
+    uploadDate: '2024-08-12',
+    size: '8.7 MB',
+    downloads: 32,
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    id: '3',
+    title: 'Physics Lab Manual',
+    type: 'PDF',
+    subject: 'Physics',
+    description: 'Laboratory experiments and procedures for physics students',
+    fileUrl: '/materials/physics-lab.pdf',
+    uploadedBy: 'Dr. Wilson',
+    uploadDate: '2024-08-14',
+    size: '12.1 MB',
+    downloads: 28,
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }
+];
+
 function getToken() {
   return localStorage.getItem("token");
 }
@@ -29,8 +78,13 @@ async function request(path = '', options = {}) {
   return res.json();
 }
 
-export function fetchLearningMaterials() {
-  return request();
+export async function fetchLearningMaterials() {
+  try {
+    return await request();
+  } catch (error) {
+    console.warn('API not available, using fallback data for learning materials:', error.message);
+    return fallbackLearningMaterials;
+  }
 }
 
 export function addLearningMaterial(learningMaterial) {

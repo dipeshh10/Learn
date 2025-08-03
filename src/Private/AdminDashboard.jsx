@@ -1,101 +1,62 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaEdit, FaTrash, FaUser, FaUsers, FaChartBar, FaCalendarAlt, FaClipboardList, FaBook, FaMoneyBillWave, FaBell, FaGraduationCap } from "react-icons/fa";
+import { FaEdit, FaTrash, FaUser, FaUsers, FaChartBar, FaCalendarAlt, FaClipboardList, FaBook, FaChalkboardTeacher, FaGraduationCap, FaMoneyBillWave, FaBell } from "react-icons/fa";
 import Slidebar from "../components/Slidebar.jsx";
-import { useNavigate } from 'react-router-dom';
+import Modal from "../components/Modal.jsx";
 import logoIcon from '../assets/LearnX.png';
+import { useNavigate } from 'react-router-dom';
+import { fetchStudents, addStudent, updateStudent, deleteStudent } from '../Services/studentApi';
+import { fetchTeachers, addTeacher, updateTeacher, deleteTeacher } from '../Services/teacherApi';
+import { fetchCourses, createCourse, updateCourse, deleteCourse } from '../Services/coursesApi';
+import { fetchRoutines, addRoutine, updateRoutine, deleteRoutine } from '../Services/routineApi';
+import { fetchReports, addReport, updateReport, deleteReport } from '../Services/reportApi';
+import { fetchAttendance, addAttendance, updateAttendance, deleteAttendance } from '../Services/attendenceApi';
+import { fetchLearningMaterials, addLearningMaterial, updateLearningMaterial, deleteLearningMaterial } from '../Services/learningMaterialApi';
+import { fetchFees, addFee, updateFee, deleteFee } from '../Services/feeApi';
+import { fetchNotifications, addNotification, updateNotification, deleteNotification } from '../Services/notificationApi';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   
-  // Auth check on mount
-  useEffect(() => {
-    const userStr = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
-    let user = null;
-    
-    try {
-      user = userStr ? JSON.parse(userStr) : null;
-    } catch (error) {
-      console.error('Error parsing user from localStorage:', error);
-      localStorage.removeItem('user');
-    }
-    
-    if (!token || !user || user.role !== 'admin') {
-      navigate('/admin', { replace: true });
-    }
-  }, [navigate]);
-
   // Main section state
   const [section, setSection] = useState('home');
 
-  // Data states with Roman Nepali sample data (reduced to 2 items each)
-  const [students, setStudents] = useState([
-    { _id: 1, name: 'Suman Karki', email: 'suman@learnx.np', course: 'Class 10A', fees: 'Rs. 50,000' },
-    { _id: 2, name: 'Kritika Shrestha', email: 'kritika@learnx.np', course: 'Class 10B', fees: 'Rs. 25,000' }
-  ]);
-  
-  const [routines, setRoutines] = useState([
-    { _id: 1, subject: 'Mathematics', time: '9:00-10:00', teacher: 'Ram Bahadur', room: 'Room 101', day: 'Sunday' },
-    { _id: 2, subject: 'English', time: '10:00-11:00', teacher: 'Sita Devi', room: 'Room 102', day: 'Monday' }
-  ]);
-  
-  const [reports, setReports] = useState([
-    { id: 1, title: 'Monthly Exam', student: 'Suman Karki', grades: 'A+', date: '2024/08/15' },
-    { id: 2, title: 'Quarterly Exam', student: 'Kritika Shrestha', grades: 'A', date: '2024/08/20' }
-  ]);
-  
-  const [attendanceList, setAttendanceList] = useState([
-    { _id: 1, studentName: 'Suman Karki', class: 'Class 10A', status: 'Present', date: '2024/08/15' },
-    { _id: 2, studentName: 'Kritika Shrestha', class: 'Class 10B', status: 'Absent', date: '2024/08/15' }
-  ]);
-
-  const [fees, setFees] = useState([
-    { _id: 1, studentName: 'Suman Karki', class: 'Class 10A', amount: 'Rs. 50,000', status: 'Paid', dueDate: '2024/09/01' },
-    { _id: 2, studentName: 'Kritika Shrestha', class: 'Class 10B', amount: 'Rs. 25,000', status: 'Pending', dueDate: '2024/09/15' }
-  ]);
-
-  const [learningMaterials, setLearningMaterials] = useState([
-    { _id: 1, title: 'Mathematics Book', subject: 'Mathematics', class: 'Class 10A', type: 'PDF', uploadDate: '2024/08/10' },
-    { _id: 2, title: 'English Grammar', subject: 'English', class: 'Class 10B', type: 'Video', uploadDate: '2024/08/12' }
-  ]);
-
-  const [notifications, setNotifications] = useState([
-    { _id: 1, title: 'Exam Notice', message: 'Monthly exam will be held next week', priority: 'High', date: '2024/08/20' },
-    { _id: 2, title: 'Holiday Notice', message: 'Tomorrow is public holiday', priority: 'Medium', date: '2024/08/22' }
-  ]);
-
-  const [courses, setCourses] = useState([
-    { _id: 1, title: 'Basic Mathematics', description: 'Mathematics course for Class 10', instructor: 'Ram Bahadur', duration: '6 months', students: 25 },
-    { _id: 2, title: 'English Language', description: 'English language course', instructor: 'Sita Devi', duration: '4 months', students: 30 }
-  ]);
-
-  const [teachers, setTeachers] = useState([
-    { _id: 1, name: 'Ram Bahadur', email: 'ram@learnx.np', subject: 'Mathematics', phone: '9841234567', experience: '5 years' },
-    { _id: 2, name: 'Sita Devi', email: 'sita@learnx.np', subject: 'English', phone: '9847654321', experience: '8 years' }
-  ]);
+  // Data states
+  const [students, setStudents] = useState([]);
+  const [teachers, setTeachers] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [routines, setRoutines] = useState([]);
+  const [reports, setReports] = useState([]);
+  const [attendanceList, setAttendanceList] = useState([]);
+  const [learningMaterials, setLearningMaterials] = useState([]);
+  const [fees, setFees] = useState([]);
+  const [notifications, setNotifications] = useState([]);
 
   // Loading states
   const [loadingStudents, setLoadingStudents] = useState(false);
+  const [loadingTeachers, setLoadingTeachers] = useState(false);
+  const [loadingCourses, setLoadingCourses] = useState(false);
   const [loadingRoutines, setLoadingRoutines] = useState(false);
   const [loadingReports, setLoadingReports] = useState(false);
   const [loadingAttendance, setLoadingAttendance] = useState(false);
+  const [loadingLearningMaterials, setLoadingLearningMaterials] = useState(false);
   const [loadingFees, setLoadingFees] = useState(false);
-  const [loadingMaterials, setLoadingMaterials] = useState(false);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
-  const [loadingCourses, setLoadingCourses] = useState(false);
-  const [loadingTeachers, setLoadingTeachers] = useState(false);
 
   // Modal states for students
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [showEditStudentModal, setShowEditStudentModal] = useState(false);
-  const [studentForm, setStudentForm] = useState({ name: '', email: '', course: '', fees: '' });
+  const [studentForm, setStudentForm] = useState({ name: '', email: '', course: '' });
   const [studentEditId, setStudentEditId] = useState(null);
   const [studentError, setStudentError] = useState('');
 
   // Modal states for reports
   const [showAddReportModal, setShowAddReportModal] = useState(false);
   const [showEditReportModal, setShowEditReportModal] = useState(false);
+    const handleEdit = (report) => {
+      setShowEditReportModal(true);
+      setReportForm(report);
+    };
   const [reportForm, setReportForm] = useState({ title: '', student: '', grades: '' });
   const [reportEditId, setReportEditId] = useState(null);
   const [reportError, setReportError] = useState('');
@@ -103,357 +64,79 @@ const AdminDashboard = () => {
   // Modal states for routines
   const [showAddRoutineModal, setShowAddRoutineModal] = useState(false);
   const [showEditRoutineModal, setShowEditRoutineModal] = useState(false);
-  const [routineForm, setRoutineForm] = useState({ subject: '', time: '', teacher: '', room: '', day: '' });
+  const [routineForm, setRoutineForm] = useState({ subject: '', time: '', teacher: '', room: '' });
   const [routineEditId, setRoutineEditId] = useState(null);
   const [routineError, setRoutineError] = useState('');
 
   // Modal states for attendance
   const [showAddAttendanceModal, setShowAddAttendanceModal] = useState(false);
   const [showEditAttendanceModal, setShowEditAttendanceModal] = useState(false);
-  const [attendanceForm, setAttendanceForm] = useState({ studentName: '', class: '', status: 'उपस्थित', date: '' });
+  const [attendanceForm, setAttendanceForm] = useState({ studentName: '', class: '', status: 'Present', date: '' });
   const [attendanceEditId, setAttendanceEditId] = useState(null);
   const [attendanceError, setAttendanceError] = useState('');
   const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
 
-  // Modal states for fees
-  const [showAddFeeModal, setShowAddFeeModal] = useState(false);
-  const [showEditFeeModal, setShowEditFeeModal] = useState(false);
-  const [feeForm, setFeeForm] = useState({ studentName: '', class: '', amount: '', status: 'बाँकी', dueDate: '' });
-  const [feeEditId, setFeeEditId] = useState(null);
-  const [feeError, setFeeError] = useState('');
-
-  // Modal states for learning materials
-  const [showAddMaterialModal, setShowAddMaterialModal] = useState(false);
-  const [showEditMaterialModal, setShowEditMaterialModal] = useState(false);
-  const [materialForm, setMaterialForm] = useState({ title: '', subject: '', class: '', type: 'PDF' });
-  const [materialEditId, setMaterialEditId] = useState(null);
-  const [materialError, setMaterialError] = useState('');
-
-  // Modal states for notifications
-  const [showAddNotificationModal, setShowAddNotificationModal] = useState(false);
-  const [showEditNotificationModal, setShowEditNotificationModal] = useState(false);
-  const [notificationForm, setNotificationForm] = useState({ title: '', message: '', priority: 'सामान्य' });
-  const [notificationEditId, setNotificationEditId] = useState(null);
-  const [notificationError, setNotificationError] = useState('');
-
-  // Database connection and localStorage sync functions
-  const syncWithLocalStorage = (dataType, data) => {
-    try {
-      localStorage.setItem(dataType, JSON.stringify(data));
-      // Trigger storage event for other tabs/components
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: dataType,
-        newValue: JSON.stringify(data)
-      }));
-    } catch (error) {
-      console.error(`Failed to sync ${dataType} with localStorage:`, error);
-    }
-  };
-
-  // Database API functions (to be connected to your backend)
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-  
-  const apiCall = async (endpoint, method = 'GET', data = null) => {
-    try {
-      const token = localStorage.getItem('token');
-      const config = {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : ''
-        }
-      };
-      
-      if (data && method !== 'GET') {
-        config.body = JSON.stringify(data);
-      }
-      
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      return await response.json();
-    } catch (error) {
-      console.error('API call failed:', error);
-      throw error;
-    }
-  };
-
-  // Load data from localStorage on component mount
-  useEffect(() => {
-    const loadStoredData = () => {
-      try {
-        const storedStudents = localStorage.getItem('students');
-        const storedCourses = localStorage.getItem('courses');
-        const storedTeachers = localStorage.getItem('teachers');
-        const storedRoutines = localStorage.getItem('routines');
-        const storedReports = localStorage.getItem('reports');
-        const storedAttendance = localStorage.getItem('attendance');
-        const storedFees = localStorage.getItem('fees');
-        const storedMaterials = localStorage.getItem('learningMaterials');
-        const storedNotifications = localStorage.getItem('notifications');
-
-        if (storedStudents) setStudents(JSON.parse(storedStudents));
-        if (storedCourses) setCourses(JSON.parse(storedCourses));
-        if (storedTeachers) setTeachers(JSON.parse(storedTeachers));
-        if (storedRoutines) setRoutines(JSON.parse(storedRoutines));
-        if (storedReports) setReports(JSON.parse(storedReports));
-        if (storedAttendance) setAttendanceList(JSON.parse(storedAttendance));
-        if (storedFees) setFees(JSON.parse(storedFees));
-        if (storedMaterials) setLearningMaterials(JSON.parse(storedMaterials));
-        if (storedNotifications) setNotifications(JSON.parse(storedNotifications));
-      } catch (error) {
-        console.error('Failed to load data from localStorage:', error);
-      }
-    };
-
-    loadStoredData();
-  }, []);
+  // Modal states for teachers
+  const [showAddTeacherModal, setShowAddTeacherModal] = useState(false);
+  const [showEditTeacherModal, setShowEditTeacherModal] = useState(false);
+  const [teacherForm, setTeacherForm] = useState({ name: '', email: '', phone: '', subject: '', department: '' });
+  const [teacherEditId, setTeacherEditId] = useState(null);
+  const [teacherError, setTeacherError] = useState('');
 
   // Modal states for courses
   const [showAddCourseModal, setShowAddCourseModal] = useState(false);
   const [showEditCourseModal, setShowEditCourseModal] = useState(false);
-  const [courseForm, setCourseForm] = useState({ title: '', description: '', instructor: '', duration: '' });
+  const [courseForm, setCourseForm] = useState({ name: '', code: '', description: '', credits: '', teacherId: '', fee: '' });
   const [courseEditId, setCourseEditId] = useState(null);
   const [courseError, setCourseError] = useState('');
 
-  // Modal states for teachers
-  const [showAddTeacherModal, setShowAddTeacherModal] = useState(false);
-  const [showEditTeacherModal, setShowEditTeacherModal] = useState(false);
-  const [teacherForm, setTeacherForm] = useState({ name: '', email: '', subject: '', phone: '', experience: '' });
-  const [teacherEditId, setTeacherEditId] = useState(null);
-  const [teacherError, setTeacherError] = useState('');
+  // Modal states for learning materials
+  const [showAddLearningMaterialModal, setShowAddLearningMaterialModal] = useState(false);
+  const [showEditLearningMaterialModal, setShowEditLearningMaterialModal] = useState(false);
+  const [learningMaterialForm, setLearningMaterialForm] = useState({ title: '', type: 'Document', url: '', description: '', subject: '' });
+  const [learningMaterialEditId, setLearningMaterialEditId] = useState(null);
+  const [learningMaterialError, setLearningMaterialError] = useState('');
 
-  // Optimized input handlers to prevent focus loss
-  const handleStudentFormChange = useCallback((field, value) => {
-    setStudentForm(prev => ({ ...prev, [field]: value }));
-  }, []);
+  // Modal states for fees
+  const [showAddFeeModal, setShowAddFeeModal] = useState(false);
+  const [showEditFeeModal, setShowEditFeeModal] = useState(false);
+  const [feeForm, setFeeForm] = useState({ studentName: '', class: '', amount: '', status: 'Pending', dueDate: '' });
+  const [feeEditId, setFeeEditId] = useState(null);
+  const [feeError, setFeeError] = useState('');
 
-  const handleReportFormChange = useCallback((field, value) => {
-    setReportForm(prev => ({ ...prev, [field]: value }));
-  }, []);
+  // Modal states for notifications
+  const [showAddNotificationModal, setShowAddNotificationModal] = useState(false);
+  const [showEditNotificationModal, setShowEditNotificationModal] = useState(false);
+  const [notificationForm, setNotificationForm] = useState({ title: '', message: '', type: 'general', priority: 'medium', targetAudience: 'all' });
+  const [notificationEditId, setNotificationEditId] = useState(null);
+  const [notificationError, setNotificationError] = useState('');
 
-  const handleRoutineFormChange = useCallback((field, value) => {
-    setRoutineForm(prev => ({ ...prev, [field]: value }));
-  }, []);
-
-  const handleAttendanceFormChange = useCallback((field, value) => {
-    setAttendanceForm(prev => ({ ...prev, [field]: value }));
-  }, []);
-
-  const handleFeeFormChange = useCallback((field, value) => {
-    setFeeForm(prev => ({ ...prev, [field]: value }));
-  }, []);
-
-  const handleMaterialFormChange = useCallback((field, value) => {
-    setMaterialForm(prev => ({ ...prev, [field]: value }));
-  }, []);
-
-  const handleNotificationFormChange = useCallback((field, value) => {
-    setNotificationForm(prev => ({ ...prev, [field]: value }));
-  }, []);
-
-  const handleCourseFormChange = useCallback((field, value) => {
-    setCourseForm(prev => ({ ...prev, [field]: value }));
-  }, []);
-
-  const handleTeacherFormChange = useCallback((field, value) => {
-    setTeacherForm(prev => ({ ...prev, [field]: value }));
-  }, []);
-
-  // Enhanced CRUD Functions for Courses with database integration
-  const handleAddCourse = async () => {
+  // Auth check on mount
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    let user = null;
     try {
-      setCourseError('');
-      if (!courseForm.title || !courseForm.description || !courseForm.instructor || !courseForm.duration) {
-        setCourseError('All fields are required');
-        return;
-      }
-      
-      setLoadingCourses(true);
-      const newCourse = {
-        _id: Date.now(),
-        title: courseForm.title,
-        description: courseForm.description,
-        instructor: courseForm.instructor,
-        duration: courseForm.duration,
-        students: 0
-      };
-
-      // Try to save to database first
-      try {
-        const savedCourse = await apiCall('/courses', 'POST', newCourse);
-        newCourse._id = savedCourse._id || newCourse._id;
-      } catch (dbError) {
-        console.warn('Database save failed, continuing with local storage:', dbError);
-      }
-
-      const updatedCourses = [...courses, newCourse];
-      setCourses(updatedCourses);
-      syncWithLocalStorage('courses', updatedCourses);
-      
-      setCourseForm({ title: '', description: '', instructor: '', duration: '' });
-      setShowAddCourseModal(false);
-    } catch (error) {
-      setCourseError(error.message || 'Failed to add course');
-    } finally {
-      setLoadingCourses(false);
+      user = userStr ? JSON.parse(userStr) : null;
+    } catch (e) {
+      console.error('Failed to parse user from localStorage:', e);
     }
-  };
-
-  const handleUpdateCourse = async () => {
-    try {
-      setCourseError('');
-      if (!courseForm.title || !courseForm.description || !courseForm.instructor || !courseForm.duration) {
-        setCourseError('All fields are required');
-        return;
-      }
-      
-      setLoadingCourses(true);
-
-      // Try to update in database first
-      try {
-        await apiCall(`/courses/${courseEditId}`, 'PUT', courseForm);
-      } catch (dbError) {
-        console.warn('Database update failed, continuing with local storage:', dbError);
-      }
-
-      const updatedCourses = courses.map(c => 
-        c._id === courseEditId ? { ...c, ...courseForm } : c
-      );
-      setCourses(updatedCourses);
-      syncWithLocalStorage('courses', updatedCourses);
-      
-      setCourseForm({ title: '', description: '', instructor: '', duration: '' });
-      setShowEditCourseModal(false);
-      setCourseEditId(null);
-    } catch (error) {
-      setCourseError(error.message || 'Failed to update course');
-    } finally {
-      setLoadingCourses(false);
+    if (!user || !user.role || !token) {
+      navigate('/login', { replace: true });
+      return;
     }
-  };
-
-  const handleDeleteCourse = async (id) => {
-    if (!confirm('Are you sure you want to delete this course?')) return;
-    
-    try {
-      setLoadingCourses(true);
-
-      // Try to delete from database first
-      try {
-        await apiCall(`/courses/${id}`, 'DELETE');
-      } catch (dbError) {
-        console.warn('Database delete failed, continuing with local storage:', dbError);
-      }
-
-      const updatedCourses = courses.filter(c => c._id !== id);
-      setCourses(updatedCourses);
-      syncWithLocalStorage('courses', updatedCourses);
-    } catch (error) {
-      alert('Failed to delete course: ' + error.message);
-    } finally {
-      setLoadingCourses(false);
+    if (user.role !== 'admin') {
+      navigate('/login', { replace: true });
     }
-  };
+  }, [navigate]);
 
-  // Enhanced CRUD Functions for Teachers with database integration
-  const handleAddTeacher = async () => {
-    try {
-      setTeacherError('');
-      if (!teacherForm.name || !teacherForm.email || !teacherForm.subject || !teacherForm.phone || !teacherForm.experience) {
-        setTeacherError('All fields are required');
-        return;
-      }
-      
-      setLoadingTeachers(true);
-      const newTeacher = {
-        _id: Date.now(),
-        name: teacherForm.name,
-        email: teacherForm.email,
-        subject: teacherForm.subject,
-        phone: teacherForm.phone,
-        experience: teacherForm.experience
-      };
-
-      // Try to save to database first
-      try {
-        const savedTeacher = await apiCall('/teachers', 'POST', newTeacher);
-        newTeacher._id = savedTeacher._id || newTeacher._id;
-      } catch (dbError) {
-        console.warn('Database save failed, continuing with local storage:', dbError);
-      }
-
-      const updatedTeachers = [...teachers, newTeacher];
-      setTeachers(updatedTeachers);
-      syncWithLocalStorage('teachers', updatedTeachers);
-      
-      setTeacherForm({ name: '', email: '', subject: '', phone: '', experience: '' });
-      setShowAddTeacherModal(false);
-    } catch (error) {
-      setTeacherError(error.message || 'Failed to add teacher');
-    } finally {
-      setLoadingTeachers(false);
-    }
-  };
-
-  const handleUpdateTeacher = async () => {
-    try {
-      setTeacherError('');
-      if (!teacherForm.name || !teacherForm.email || !teacherForm.subject || !teacherForm.phone || !teacherForm.experience) {
-        setTeacherError('All fields are required');
-        return;
-      }
-      
-      setLoadingTeachers(true);
-
-      // Try to update in database first
-      try {
-        await apiCall(`/teachers/${teacherEditId}`, 'PUT', teacherForm);
-      } catch (dbError) {
-        console.warn('Database update failed, continuing with local storage:', dbError);
-      }
-
-      const updatedTeachers = teachers.map(t => 
-        t._id === teacherEditId ? { ...t, ...teacherForm } : t
-      );
-      setTeachers(updatedTeachers);
-      syncWithLocalStorage('teachers', updatedTeachers);
-      
-      setTeacherForm({ name: '', email: '', subject: '', phone: '', experience: '' });
-      setShowEditTeacherModal(false);
-      setTeacherEditId(null);
-    } catch (error) {
-      setTeacherError(error.message || 'Failed to update teacher');
-    } finally {
-      setLoadingTeachers(false);
-    }
-  };
-
-  const handleDeleteTeacher = async (id) => {
-    if (!confirm('Are you sure you want to delete this teacher?')) return;
-    
-    try {
-      setLoadingTeachers(true);
-
-      // Try to delete from database first
-      try {
-        await apiCall(`/teachers/${id}`, 'DELETE');
-      } catch (dbError) {
-        console.warn('Database delete failed, continuing with local storage:', dbError);
-      }
-
-      const updatedTeachers = teachers.filter(t => t._id !== id);
-      setTeachers(updatedTeachers);
-      syncWithLocalStorage('teachers', updatedTeachers);
-    } catch (error) {
-      alert('Failed to delete teacher: ' + error.message);
-    } finally {
-      setLoadingTeachers(false);
-    }
-  };
+  // Load initial data on mount
+  useEffect(() => {
+    // Load students data immediately when component mounts
+    loadStudents();
+    loadTeachers();
+    loadCourses();
+  }, []);
 
   // Modal Component
   const Modal = ({ isOpen, onClose, title, children }) => {
@@ -477,7 +160,7 @@ const AdminDashboard = () => {
               alignItems: 'center',
               zIndex: 1000
             }}
-            onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+            onClick={e => { if (e.target.classList.contains('modal-overlay')) onClose(); }}
           >
             <motion.div
               className="modal-content"
@@ -534,38 +217,32 @@ const AdminDashboard = () => {
     );
   };
 
-  // Enhanced CRUD Functions for Students with database integration
+  // CRUD Functions for Students
   const handleAddStudent = async () => {
     try {
       setStudentError('');
-      if (!studentForm.name || !studentForm.email || !studentForm.course || !studentForm.fees) {
+      if (!studentForm.name || !studentForm.email || !studentForm.course) {
         setStudentError('All fields are required');
         return;
       }
-      
+
       setLoadingStudents(true);
-      const newStudent = {
-        _id: Date.now(),
+
+      // Call API to save student to database
+      const newStudent = await addStudent({
         name: studentForm.name,
         email: studentForm.email,
         course: studentForm.course,
-        fees: studentForm.fees
-      };
+        fees: studentForm.fees || '0'
+      });
 
-      // Try to save to database first
-      try {
-        const savedStudent = await apiCall('/students', 'POST', newStudent);
-        newStudent._id = savedStudent._id || newStudent._id;
-      } catch (dbError) {
-        console.warn('Database save failed, continuing with local storage:', dbError);
-      }
-
-      const updatedStudents = [...students, newStudent];
-      setStudents(updatedStudents);
-      syncWithLocalStorage('students', updatedStudents);
-      
-      setStudentForm({ name: '', email: '', course: '', fees: '' });
+      // Update local state with the saved student
+      setStudents([...students, newStudent]);
+      setStudentForm({ name: '', email: '', course: '' });
       setShowAddStudentModal(false);
+
+      // Refresh the student list from database
+      await loadStudents();
     } catch (error) {
       setStudentError(error.message || 'Failed to add student');
     } finally {
@@ -576,27 +253,16 @@ const AdminDashboard = () => {
   const handleUpdateStudent = async () => {
     try {
       setStudentError('');
-      if (!studentForm.name || !studentForm.email || !studentForm.course || !studentForm.fees) {
+      if (!studentForm.name || !studentForm.email || !studentForm.course) {
         setStudentError('All fields are required');
         return;
       }
       
       setLoadingStudents(true);
-
-      // Try to update in database first
-      try {
-        await apiCall(`/students/${studentEditId}`, 'PUT', studentForm);
-      } catch (dbError) {
-        console.warn('Database update failed, continuing with local storage:', dbError);
-      }
-
-      const updatedStudents = students.map(s => 
+      setStudents(students.map(s => 
         s._id === studentEditId ? { ...s, ...studentForm } : s
-      );
-      setStudents(updatedStudents);
-      syncWithLocalStorage('students', updatedStudents);
-      
-      setStudentForm({ name: '', email: '', course: '', fees: '' });
+      ));
+      setStudentForm({ name: '', email: '', course: '' });
       setShowEditStudentModal(false);
       setStudentEditId(null);
     } catch (error) {
@@ -611,17 +277,7 @@ const AdminDashboard = () => {
     
     try {
       setLoadingStudents(true);
-
-      // Try to delete from database first
-      try {
-        await apiCall(`/students/${id}`, 'DELETE');
-      } catch (dbError) {
-        console.warn('Database delete failed, continuing with local storage:', dbError);
-      }
-
-      const updatedStudents = students.filter(s => s._id !== id);
-      setStudents(updatedStudents);
-      syncWithLocalStorage('students', updatedStudents);
+      setStudents(students.filter(s => s._id !== id));
     } catch (error) {
       alert('Failed to delete student: ' + error.message);
     } finally {
@@ -646,9 +302,7 @@ const AdminDashboard = () => {
         grades: reportForm.grades,
         date: new Date().toISOString().split('T')[0]
       };
-      const updatedReports = [...reports, newReport];
-      setReports(updatedReports);
-      syncWithLocalStorage('reports', updatedReports);
+      setReports([...reports, newReport]);
       setReportForm({ title: '', student: '', grades: '' });
       setShowAddReportModal(false);
     } catch (error) {
@@ -667,11 +321,9 @@ const AdminDashboard = () => {
       }
       
       setLoadingReports(true);
-      const updatedReports = reports.map(r => 
+      setReports(reports.map(r => 
         r.id === reportEditId ? { ...r, ...reportForm } : r
-      );
-      setReports(updatedReports);
-      syncWithLocalStorage('reports', updatedReports);
+      ));
       setReportForm({ title: '', student: '', grades: '' });
       setShowEditReportModal(false);
       setReportEditId(null);
@@ -687,9 +339,7 @@ const AdminDashboard = () => {
     
     try {
       setLoadingReports(true);
-      const updatedReports = reports.filter(r => r.id !== id);
-      setReports(updatedReports);
-      syncWithLocalStorage('reports', updatedReports);
+      setReports(reports.filter(r => r.id !== id));
     } catch (error) {
       alert('Failed to delete report: ' + error.message);
     } finally {
@@ -705,22 +355,23 @@ const AdminDashboard = () => {
         setRoutineError('All fields are required');
         return;
       }
-      
       setLoadingRoutines(true);
-      const newRoutine = {
-        _id: Date.now(),
+      await addRoutine({
         subject: routineForm.subject,
         time: routineForm.time,
-        teacher: routineForm.teacher,
-        room: routineForm.room
-      };
-      const updatedRoutines = [...routines, newRoutine];
-      setRoutines(updatedRoutines);
-      syncWithLocalStorage('routines', updatedRoutines);
+        teacherName: routineForm.teacher,
+        room: routineForm.room,
+        day: routineForm.day || 'Monday',
+        createdBy: '999', // or current user id
+        isActive: true
+      });
+      const updated = await fetchRoutines();
+      setRoutines(updated);
       setRoutineForm({ subject: '', time: '', teacher: '', room: '' });
       setShowAddRoutineModal(false);
     } catch (error) {
       setRoutineError(error.message || 'Failed to add routine');
+      console.error('Routine Add Error:', error);
     } finally {
       setLoadingRoutines(false);
     }
@@ -733,18 +384,23 @@ const AdminDashboard = () => {
         setRoutineError('All fields are required');
         return;
       }
-      
       setLoadingRoutines(true);
-      const updatedRoutines = routines.map(r => 
-        r._id === routineEditId ? { ...r, ...routineForm } : r
-      );
-      setRoutines(updatedRoutines);
-      syncWithLocalStorage('routines', updatedRoutines);
+      await updateRoutine(routineEditId, {
+        subject: routineForm.subject,
+        time: routineForm.time,
+        teacherName: routineForm.teacher,
+        room: routineForm.room,
+        day: routineForm.day || 'Monday',
+        isActive: true
+      });
+      const updated = await fetchRoutines();
+      setRoutines(updated);
       setRoutineForm({ subject: '', time: '', teacher: '', room: '' });
       setShowEditRoutineModal(false);
       setRoutineEditId(null);
     } catch (error) {
       setRoutineError(error.message || 'Failed to update routine');
+      console.error('Routine Update Error:', error);
     } finally {
       setLoadingRoutines(false);
     }
@@ -752,14 +408,14 @@ const AdminDashboard = () => {
 
   const handleDeleteRoutine = async (id) => {
     if (!confirm('Are you sure you want to delete this routine?')) return;
-    
     try {
       setLoadingRoutines(true);
-      const updatedRoutines = routines.filter(r => r._id !== id);
-      setRoutines(updatedRoutines);
-      syncWithLocalStorage('routines', updatedRoutines);
+      await deleteRoutine(id);
+      const updated = await fetchRoutines();
+      setRoutines(updated);
     } catch (error) {
       alert('Failed to delete routine: ' + error.message);
+      console.error('Routine Delete Error:', error);
     } finally {
       setLoadingRoutines(false);
     }
@@ -782,9 +438,7 @@ const AdminDashboard = () => {
         status: attendanceForm.status,
         date: attendanceForm.date
       };
-      const updatedAttendance = [...attendanceList, newAttendance];
-      setAttendanceList(updatedAttendance);
-      syncWithLocalStorage('attendance', updatedAttendance);
+      setAttendanceList([...attendanceList, newAttendance]);
       setAttendanceForm({ studentName: '', class: '', status: 'Present', date: attendanceDate });
       setShowAddAttendanceModal(false);
     } catch (error) {
@@ -803,11 +457,9 @@ const AdminDashboard = () => {
       }
       
       setLoadingAttendance(true);
-      const updatedAttendance = attendanceList.map(a => 
+      setAttendanceList(attendanceList.map(a => 
         a._id === attendanceEditId ? { ...a, ...attendanceForm } : a
-      );
-      setAttendanceList(updatedAttendance);
-      syncWithLocalStorage('attendance', updatedAttendance);
+      ));
       setAttendanceForm({ studentName: '', class: '', status: 'Present', date: attendanceDate });
       setShowEditAttendanceModal(false);
       setAttendanceEditId(null);
@@ -820,18 +472,263 @@ const AdminDashboard = () => {
 
   const handleDeleteAttendance = async (id) => {
     if (!confirm('Are you sure you want to delete this attendance record?')) return;
-    
+
     try {
       setLoadingAttendance(true);
-      const updatedAttendance = attendanceList.filter(a => a._id !== id);
-      setAttendanceList(updatedAttendance);
-      syncWithLocalStorage('attendance', updatedAttendance);
+      setAttendanceList(attendanceList.filter(a => a._id !== id));
     } catch (error) {
       alert('Failed to delete attendance: ' + error.message);
     } finally {
       setLoadingAttendance(false);
     }
   };
+
+  // CRUD Functions for Teachers
+  const handleAddTeacher = async () => {
+    try {
+      setTeacherError('');
+      if (!teacherForm.name || !teacherForm.email || !teacherForm.subject) {
+        setTeacherError('Please fill in all required fields');
+        return;
+      }
+
+      const newTeacher = await addTeacher(teacherForm);
+      setTeachers(prev => [...prev, newTeacher]);
+      setTeacherForm({ name: '', email: '', phone: '', subject: '', department: '' });
+      setShowAddTeacherModal(false);
+
+      // Refresh the teacher list from database
+      await loadTeachers();
+    } catch (error) {
+      setTeacherError(error.message || 'Failed to add teacher');
+    }
+  };
+
+  const handleEditTeacher = (teacher) => {
+    setTeacherForm(teacher);
+    setTeacherEditId(teacher.id);
+    setShowEditTeacherModal(true);
+  };
+
+  const handleUpdateTeacher = async () => {
+    try {
+      setTeacherError('');
+      if (!teacherForm.name || !teacherForm.email || !teacherForm.subject) {
+        setTeacherError('Please fill in all required fields');
+        return;
+      }
+
+      const updatedTeacher = await updateTeacher(teacherEditId, teacherForm);
+      setTeachers(prev => prev.map(teacher =>
+        teacher.id === teacherEditId ? updatedTeacher : teacher
+      ));
+      setTeacherForm({ name: '', email: '', phone: '', subject: '', department: '' });
+      setTeacherEditId(null);
+      setShowEditTeacherModal(false);
+    } catch (error) {
+      setTeacherError(error.message || 'Failed to update teacher');
+    }
+  };
+
+  const handleDeleteTeacher = async (id) => {
+    if (!confirm('Are you sure you want to delete this teacher?')) return;
+
+    try {
+      await deleteTeacher(id);
+      setTeachers(prev => prev.filter(teacher => teacher.id !== id));
+    } catch (error) {
+      alert(error.message || 'Failed to delete teacher');
+    }
+  };
+
+  // CRUD Functions for Courses
+  const handleAddCourse = async () => {
+    try {
+      setCourseError('');
+      if (!courseForm.name || !courseForm.code) {
+        setCourseError('Please fill in all required fields');
+        return;
+      }
+
+      const newCourse = await createCourse(courseForm);
+      setCourses(prev => [...prev, newCourse]);
+      setCourseForm({ name: '', code: '', description: '', credits: '', teacherId: '', fee: '' });
+      setShowAddCourseModal(false);
+    } catch (error) {
+      setCourseError(error.message || 'Failed to add course');
+    }
+  };
+
+  const handleEditCourse = (course) => {
+    setCourseForm(course);
+    setCourseEditId(course.id);
+    setShowEditCourseModal(true);
+  };
+
+  const handleUpdateCourse = async () => {
+    try {
+      setCourseError('');
+      if (!courseForm.name || !courseForm.code) {
+        setCourseError('Please fill in all required fields');
+        return;
+      }
+
+      const updatedCourse = await updateCourse(courseEditId, courseForm);
+      setCourses(prev => prev.map(course =>
+        course.id === courseEditId ? updatedCourse : course
+      ));
+      setCourseForm({ name: '', code: '', description: '', credits: '', teacherId: '', fee: '' });
+      setCourseEditId(null);
+      setShowEditCourseModal(false);
+    } catch (error) {
+      setCourseError(error.message || 'Failed to update course');
+    }
+  };
+
+  const handleDeleteCourse = async (id) => {
+    if (!confirm('Are you sure you want to delete this course?')) return;
+
+    try {
+      await deleteCourse(id);
+      setCourses(prev => prev.filter(course => course.id !== id));
+    } catch (error) {
+      alert(error.message || 'Failed to delete course');
+    }
+  };
+
+  // Data loading functions
+  const loadTeachers = async () => {
+    try {
+      setLoadingTeachers(true);
+      const data = await fetchTeachers();
+      setTeachers(data);
+    } catch (error) {
+      console.error('Error loading teachers:', error);
+    } finally {
+      setLoadingTeachers(false);
+    }
+  };
+
+  const loadCourses = async () => {
+    try {
+      setLoadingCourses(true);
+      const data = await fetchCourses();
+      setCourses(data);
+    } catch (error) {
+      console.error('Error loading courses:', error);
+    } finally {
+      setLoadingCourses(false);
+    }
+  };
+
+  const loadStudents = async () => {
+    try {
+      console.log('🔄 Loading students...');
+      setLoadingStudents(true);
+      const data = await fetchStudents();
+      console.log('📊 Students loaded:', data);
+      setStudents(data);
+    } catch (error) {
+      console.error('❌ Error loading students:', error);
+    } finally {
+      setLoadingStudents(false);
+    }
+  };
+
+  const loadRoutines = async () => {
+    try {
+      setLoadingRoutines(true);
+      const data = await fetchRoutines();
+      setRoutines(data);
+    } catch (error) {
+      console.error('Error loading routines:', error);
+    } finally {
+      setLoadingRoutines(false);
+    }
+  };
+
+  const loadAttendance = async () => {
+    try {
+      setLoadingAttendance(true);
+      const data = await fetchAttendance();
+      setAttendanceList(data);
+    } catch (error) {
+      console.error('Error loading attendance:', error);
+    } finally {
+      setLoadingAttendance(false);
+    }
+  };
+
+  const loadReports = async () => {
+    try {
+      setLoadingReports(true);
+      const data = await fetchReports();
+      setReports(data);
+    } catch (error) {
+      console.error('Error loading reports:', error);
+    } finally {
+      setLoadingReports(false);
+    }
+  };
+
+  const loadLearningMaterials = async () => {
+    try {
+      setLoadingLearningMaterials(true);
+      const data = await fetchLearningMaterials();
+      setLearningMaterials(data);
+    } catch (error) {
+      console.error('Error loading learning materials:', error);
+    } finally {
+      setLoadingLearningMaterials(false);
+    }
+  };
+
+  const loadFees = async () => {
+    try {
+      setLoadingFees(true);
+      const data = await fetchFees();
+      setFees(data);
+    } catch (error) {
+      console.error('Error loading fees:', error);
+    } finally {
+      setLoadingFees(false);
+    }
+  };
+
+  const loadNotifications = async () => {
+    try {
+      setLoadingNotifications(true);
+      const data = await fetchNotifications();
+      setNotifications(data);
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+    } finally {
+      setLoadingNotifications(false);
+    }
+  };
+
+  // Load data when section changes
+  useEffect(() => {
+    if (section === 'teachers') {
+      loadTeachers();
+    } else if (section === 'courses') {
+      loadCourses();
+    } else if (section === 'students') {
+      loadStudents();
+    } else if (section === 'routine') {
+      loadRoutines();
+    } else if (section === 'attendance') {
+      loadAttendance();
+    } else if (section === 'reports') {
+      loadReports();
+    } else if (section === 'learning') {
+      loadLearningMaterials();
+    } else if (section === 'fees') {
+      loadFees();
+    } else if (section === 'notifications') {
+      loadNotifications();
+    }
+  }, [section]);
 
   const loadAttendanceForDate = () => {
     // In a real app, this would fetch from API based on date
@@ -1069,152 +966,58 @@ const AdminDashboard = () => {
         </h2>
         {loadingStudents ? <p>Loading...</p> : (
           <>
-            <div style={{ 
-              overflowX: 'auto',
-              WebkitOverflowScrolling: 'touch',
+            <table style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              backgroundColor: 'white',
               borderRadius: '12px',
+              overflow: 'hidden',
               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
             }}>
-              <table style={{
-                width: '100%',
-                minWidth: '600px',
-                borderCollapse: 'collapse',
-                backgroundColor: 'white'
-              }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#374151', color: 'white' }}>
-                    <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '60px' }}>#</th>
-                    <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '150px' }}>NAME</th>
-                    <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '200px' }}>EMAIL</th>
-                    <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '120px' }}>COURSE</th>
-                    <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '100px' }}>FEES</th>
-                    <th style={{ padding: '16px', textAlign: 'center', fontWeight: '600', minWidth: '150px' }}>ACTIONS</th>
+              <thead>
+                <tr style={{ backgroundColor: '#374151', color: 'white' }}>
+                  <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>#</th>
+                  <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>NAME</th>
+                  <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>EMAIL</th>
+                  <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>COURSE</th>
+                  <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {students.length === 0 && (
+                  <tr>
+                    <td colSpan="5" style={{ 
+                      padding: '20px', 
+                      textAlign: 'center', 
+                      color: '#6b7280',
+                      fontStyle: 'italic'
+                    }}>
+                      No students found. Add your first student!
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {students.length === 0 && (
-                    <tr>
-                      <td colSpan="6" style={{ 
-                        padding: '20px', 
-                        textAlign: 'center', 
-                        color: '#6b7280',
-                        fontStyle: 'italic'
-                      }}>
-                        No students found. Add your first student!
-                      </td>
-                    </tr>
-                  )}
-                  {students.map((student, index) => (
-                    <tr key={student._id || index} style={{ 
-                      borderBottom: '1px solid #e5e7eb',
-                      transition: 'background-color 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
-                      <td style={{ padding: '16px', fontWeight: '500' }}>{index + 1}</td>
-                      <td style={{ padding: '16px', fontWeight: '600' }}>{student.name}</td>
-                      <td style={{ padding: '16px', color: '#2563eb' }}>{student.email}</td>
-                      <td style={{ padding: '16px' }}>{student.course}</td>
-                      <td style={{ padding: '16px', color: '#059669', fontWeight: '600' }}>{student.fees}</td>
-                      <td style={{ padding: '16px' }}>
-                        <div style={{ 
-                          display: 'flex', 
-                          gap: '8px', 
-                          justifyContent: 'center',
-                          flexWrap: 'wrap'
-                        }}>
-                          <button
-                            onClick={() => {
-                              setStudentForm(student);
-                              setStudentEditId(student._id);
-                              setShowEditStudentModal(true);
-                              setStudentError('');
-                            }}
-                            style={{
-                              backgroundColor: '#3b82f6',
-                              color: 'white',
-                              border: 'none',
-                              padding: '8px 12px',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontSize: '12px',
-                              fontWeight: '500',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              transition: 'all 0.2s',
-                              minWidth: '60px',
-                              justifyContent: 'center'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.backgroundColor = '#2563eb';
-                              e.target.style.transform = 'translateY(-1px)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.backgroundColor = '#3b82f6';
-                              e.target.style.transform = 'translateY(0)';
-                            }}
-                          >
-                            <FaEdit />
-                            <span className="edit-text" style={{ 
-                              display: 'inline',
-                              '@media (max-width: 768px)': { display: 'none' }
-                            }}>Edit</span>
-                          </button>
-                          <button
-                            onClick={() => handleDeleteStudent(student._id)}
-                            disabled={loadingStudents}
-                            style={{
-                              backgroundColor: '#ef4444',
-                              color: 'white',
-                              border: 'none',
-                              padding: '8px 12px',
-                              borderRadius: '6px',
-                              cursor: loadingStudents ? 'not-allowed' : 'pointer',
-                              fontSize: '12px',
-                              fontWeight: '500',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              opacity: loadingStudents ? 0.6 : 1,
-                              transition: 'all 0.2s',
-                              minWidth: '60px',
-                              justifyContent: 'center'
-                            }}
-                            onMouseEnter={(e) => {
-                              if (!loadingStudents) {
-                                e.target.style.backgroundColor = '#dc2626';
-                                e.target.style.transform = 'translateY(-1px)';
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!loadingStudents) {
-                                e.target.style.backgroundColor = '#ef4444';
-                                e.target.style.transform = 'translateY(0)';
-                              }
-                            }}
-                          >
-                            <FaTrash />
-                            <span className="delete-text" style={{ 
-                              display: 'inline',
-                              '@media (max-width: 768px)': { display: 'none' }
-                            }}>Delete</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                )}
+                {students.map((student, index) => (
+                  <tr key={student._id || index} style={{ 
+                    borderBottom: '1px solid #e5e7eb'
+                  }}>
+                    <td style={{ padding: '16px', fontWeight: '500' }}>{index + 1}</td>
+                    <td style={{ padding: '16px' }}>{student.name}</td>
+                    <td style={{ padding: '16px', color: '#2563eb' }}>{student.email}</td>
+                    <td style={{ padding: '16px' }}>{student.course}</td>
+                    <td style={{ padding: '16px', display: 'flex', gap: '8px' }}>
+                        {/* Removed edit and delete icons from sidebar */}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
             
             <div style={{ textAlign: 'center', marginTop: '20px' }}>
               <button 
                 onClick={() => { 
                   setShowAddStudentModal(true); 
                   setStudentError(''); 
-                  setStudentForm({ name: '', email: '', course: '', fees: '' });
+                  setStudentForm({ name: '', email: '', course: '' });
                 }}
                 style={{
                   backgroundColor: '#2563eb',
@@ -1294,28 +1097,6 @@ const AdminDashboard = () => {
                     value={studentForm.course}
                     onChange={e => setStudentForm({ ...studentForm, course: e.target.value })}
                     placeholder="e.g., Computer Science"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Fees <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    value={studentForm.fees}
-                    onChange={e => setStudentForm({ ...studentForm, fees: e.target.value })}
-                    placeholder="e.g., Rs. 50,000"
                     required
                     style={{
                       padding: '8px 12px',
@@ -1438,28 +1219,6 @@ const AdminDashboard = () => {
                     onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
                   />
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Fees <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    value={studentForm.fees}
-                    onChange={e => setStudentForm({ ...studentForm, fees: e.target.value })}
-                    placeholder="e.g., Rs. 50,000"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
                 {studentError && <div style={{ color: '#ef4444', fontSize: '14px' }}>{studentError}</div>}
                 <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
                   <button 
@@ -1503,10 +1262,13 @@ const AdminDashboard = () => {
     </div>
   );
 
-  // Reports Section with full CRUD
+  // Reports Section
   const renderReports = () => (
     <div style={{ padding: '20px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
       <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
         style={{
           backgroundColor: 'white',
           borderRadius: '16px',
@@ -1515,347 +1277,10 @@ const AdminDashboard = () => {
           border: '1px solid #e5e7eb'
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ 
-            color: '#1f2937', 
-            fontSize: '24px', 
-            fontWeight: '600', 
-            margin: 0,
-            borderBottom: '2px solid #e5e7eb',
-            paddingBottom: '10px'
-          }}>
-            रिपोर्ट व्यवस्थापन
-          </h2>
-          <button
-            onClick={() => {
-              setReportForm({ title: '', student: '', grades: '' });
-              setShowAddReportModal(true);
-              setReportError('');
-            }}
-            style={{
-              backgroundColor: '#f59e0b',
-              color: 'white',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '600'
-            }}
-          >
-            + रिपोर्ट थप्नुहोस्
-          </button>
-        </div>
-        
-        {loadingReports ? (
-          <p style={{ textAlign: 'center', color: '#6b7280' }}>लोड हुँदैछ...</p>
-        ) : (
-          <table style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            overflow: 'hidden',
-            border: '1px solid #e5e7eb'
-          }}>
-            <thead>
-              <tr style={{ backgroundColor: '#374151', color: 'white' }}>
-                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>शीर्षक</th>
-                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>विद्यार्थी</th>
-                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>ग्रेड</th>
-                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>मिति</th>
-                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>कार्यहरू</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reports.map((report) => (
-                <tr key={report.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                  <td style={{ padding: '16px', fontWeight: '500' }}>{report.title}</td>
-                  <td style={{ padding: '16px' }}>{report.student}</td>
-                  <td style={{ padding: '16px', color: '#059669', fontWeight: '600' }}>{report.grades}</td>
-                  <td style={{ padding: '16px' }}>{report.date}</td>
-                  <td style={{ padding: '16px' }}>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button
-                        onClick={() => {
-                          setReportForm(report);
-                          setReportEditId(report.id);
-                          setShowEditReportModal(true);
-                          setReportError('');
-                        }}
-                        style={{
-                          backgroundColor: '#3b82f6',
-                          color: 'white',
-                          border: 'none',
-                          padding: '6px 12px',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '12px'
-                        }}
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteReport(report.id)}
-                        style={{
-                          backgroundColor: '#ef4444',
-                          color: 'white',
-                          border: 'none',
-                          padding: '6px 12px',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '12px'
-                        }}
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-
-        {/* Add Report Modal */}
-        <Modal isOpen={showAddReportModal} onClose={() => setShowAddReportModal(false)} title="Add Report">
-          <form onSubmit={e => { e.preventDefault(); handleAddReport(); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                Title <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <input
-                value={reportForm.title}
-                onChange={e => setReportForm({ ...reportForm, title: e.target.value })}
-                placeholder="e.g., Monthly Exam"
-                required
-                style={{
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  background: '#ffffff',
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease',
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                Student <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <input
-                value={reportForm.student}
-                onChange={e => setReportForm({ ...reportForm, student: e.target.value })}
-                placeholder="e.g., John Doe"
-                required
-                style={{
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  background: '#ffffff',
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease',
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                Grades <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <input
-                value={reportForm.grades}
-                onChange={e => setReportForm({ ...reportForm, grades: e.target.value })}
-                placeholder="e.g., A+"
-                required
-                style={{
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  background: '#ffffff',
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease',
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-            </div>
-            {reportError && <div style={{ color: '#ef4444', fontSize: '14px' }}>{reportError}</div>}
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
-              <button 
-                type="button" 
-                onClick={() => setShowAddReportModal(false)}
-                style={{
-                  padding: '8px 16px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  background: '#ffffff',
-                  color: '#374151',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500'
-                }}
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit" 
-                disabled={loadingReports}
-                style={{
-                  padding: '8px 16px',
-                  border: 'none',
-                  borderRadius: '6px',
-                  background: loadingReports ? '#9ca3af' : '#f59e0b',
-                  color: '#ffffff',
-                  cursor: loadingReports ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500'
-                }}
-              >
-                {loadingReports ? 'Adding...' : 'Add Report'}
-              </button>
-            </div>
-          </form>
-        </Modal>
-
-        {/* Edit Report Modal */}
-        <Modal isOpen={showEditReportModal} onClose={() => setShowEditReportModal(false)} title="Edit Report">
-          <form onSubmit={e => { e.preventDefault(); handleUpdateReport(); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                Title <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <input
-                value={reportForm.title}
-                onChange={e => setReportForm({ ...reportForm, title: e.target.value })}
-                placeholder="e.g., Monthly Exam"
-                required
-                style={{
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  background: '#ffffff',
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease',
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                Student <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <input
-                value={reportForm.student}
-                onChange={e => setReportForm({ ...reportForm, student: e.target.value })}
-                placeholder="e.g., John Doe"
-                required
-                style={{
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  background: '#ffffff',
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease',
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                Grades <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <input
-                value={reportForm.grades}
-                onChange={e => setReportForm({ ...reportForm, grades: e.target.value })}
-                placeholder="e.g., A+"
-                required
-                style={{
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  background: '#ffffff',
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease',
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-            </div>
-            {reportError && <div style={{ color: '#ef4444', fontSize: '14px' }}>{reportError}</div>}
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
-              <button 
-                type="button" 
-                onClick={() => setShowEditReportModal(false)}
-                style={{
-                  padding: '8px 16px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  background: '#ffffff',
-                  color: '#374151',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500'
-                }}
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit" 
-                disabled={loadingReports}
-                style={{
-                  padding: '8px 16px',
-                  border: 'none',
-                  borderRadius: '6px',
-                  background: loadingReports ? '#9ca3af' : '#f59e0b',
-                  color: '#ffffff',
-                  cursor: loadingReports ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500'
-                }}
-              >
-                {loadingReports ? 'Updating...' : 'Update Report'}
-              </button>
-            </div>
-          </form>
-        </Modal>
-      </motion.div>
-    </div>
-  );
-
-  // Enhanced Routines Section with full CRUD
-  const renderRoutines = () => (
-    <div style={{ padding: '20px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
-      <motion.div
-        style={{
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          padding: '24px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
-          border: '1px solid #e5e7eb'
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ 
-            color: '#1f2937', 
-            fontSize: '24px', 
-            fontWeight: '600', 
-            margin: 0,
-            borderBottom: '2px solid #e5e7eb',
-            paddingBottom: '10px'
-          }}>
-            Class Routine Management
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <h2 style={{ color: '#2563eb', fontSize: '24px', fontWeight: '600', margin: 0 }}>
+            <FaChartBar style={{ marginRight: '12px' }} />
+            Academic Reports
           </h2>
           <button
             onClick={() => {
@@ -1864,99 +1289,265 @@ const AdminDashboard = () => {
               setRoutineError('');
             }}
             style={{
-              backgroundColor: '#22c55e',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
               color: 'white',
               border: 'none',
               padding: '12px 24px',
-              borderRadius: '6px',
-              cursor: 'pointer',
+              borderRadius: '8px',
               fontSize: '14px',
-              fontWeight: '600'
+              fontWeight: '500',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
             }}
           >
-            + Add Routine
+            + Add Report
           </button>
         </div>
-        
-        {loadingRoutines ? (
-          <p style={{ textAlign: 'center', color: '#6b7280' }}>Loading...</p>
+
+  {loadingRoutines ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+            Loading reports...
+          </div>
+        ) : reports.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+            <FaChartBar style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.3 }} />
+            <p>No reports found. Create your first report!</p>
+          </div>
         ) : (
-          <table style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            overflow: 'hidden',
-            border: '1px solid #e5e7eb'
-          }}>
-            <thead>
-              <tr style={{ backgroundColor: '#374151', color: 'white' }}>
-                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>Subject</th>
-                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>Time</th>
-                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>Teacher</th>
-                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>Room</th>
-                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>Day</th>
-                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {routines.map((routine) => (
-                <tr key={routine._id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                  <td style={{ padding: '16px', fontWeight: '500', color: '#059669' }}>{routine.subject}</td>
-                  <td style={{ padding: '16px' }}>{routine.time}</td>
-                  <td style={{ padding: '16px' }}>{routine.teacher}</td>
-                  <td style={{ padding: '16px' }}>{routine.room}</td>
-                  <td style={{ padding: '16px' }}>{routine.day}</td>
-                  <td style={{ padding: '16px' }}>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button
-                        onClick={() => {
-                          setRoutineForm(routine);
-                          setRoutineEditId(routine._id);
-                          setShowEditRoutineModal(true);
-                          setRoutineError('');
-                        }}
-                        style={{
-                          backgroundColor: '#3b82f6',
-                          color: 'white',
-                          border: 'none',
-                          padding: '6px 12px',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '12px'
-                        }}
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteRoutine(routine._id)}
-                        style={{
-                          backgroundColor: '#ef4444',
-                          color: 'white',
-                          border: 'none',
-                          padding: '6px 12px',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '12px'
-                        }}
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
-                  </td>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f8fafc' }}>
+                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', fontWeight: '600', color: '#374151' }}>Title</th>
+                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', fontWeight: '600', color: '#374151' }}>Type</th>
+                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', fontWeight: '600', color: '#374151' }}>Student</th>
+                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', fontWeight: '600', color: '#374151' }}>Date</th>
+                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', fontWeight: '600', color: '#374151' }}>Grade</th>
+                  <th style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #e5e7eb', fontWeight: '600', color: '#374151' }}>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {reports.map((report, index) => (
+                  <motion.tr
+                    key={report.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                    style={{ borderBottom: '1px solid #f3f4f6' }}
+                  >
+                    <td style={{ padding: '12px', color: '#374151' }}>{report.title}</td>
+                    <td style={{ padding: '12px', color: '#6b7280' }}>{report.type}</td>
+                    <td style={{ padding: '12px', color: '#6b7280' }}>{report.studentName}</td>
+                    <td style={{ padding: '12px', color: '#6b7280' }}>{new Date(report.date).toLocaleDateString()}</td>
+                    <td style={{ padding: '12px' }}>
+                      <span style={{
+                        padding: '4px 12px',
+                        borderRadius: '20px',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        backgroundColor: report.grade >= 80 ? '#dcfce7' : report.grade >= 60 ? '#fef3c7' : '#fee2e2',
+                        color: report.grade >= 80 ? '#15803d' : report.grade >= 60 ? '#d97706' : '#dc2626'
+                      }}>
+                        {report.grade}%
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px', textAlign: 'center' }}>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                        <button
+                          onClick={() => handleEdit(report)}
+                          style={{
+                            background: '#f59e0b',
+                            color: 'white',
+                            border: 'none',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
+                        >
+                          <FaEdit />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(report.id)}
+                          style={{
+                            background: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </motion.div>
     </div>
   );
 
-  // Enhanced Attendance Section with full CRUD
+  // Routines Section
+  const renderRoutines = () => (
+    <div style={{ padding: '20px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        style={{
+          backgroundColor: 'white',
+          borderRadius: '16px',
+          padding: '24px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+          border: '1px solid #e5e7eb'
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <h2 style={{ color: '#2563eb', fontSize: '24px', fontWeight: '600', margin: 0 }}>
+            <FaCalendarAlt style={{ marginRight: '12px' }} />
+            Class Routines
+          </h2>
+          <button
+            onClick={() => setShowAddRoutineModal(true)}
+            style={{
+              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+              color: 'white',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
+            }}
+          >
+            + Add Schedule
+          </button>
+        </div>
+
+
+        {/* Show error or success message for routine operations */}
+        {routineError && (
+          <div style={{ color: '#ef4444', background: '#fee2e2', padding: '10px', borderRadius: '8px', marginBottom: '16px', textAlign: 'center', fontWeight: '500' }}>
+            {routineError}
+          </div>
+        )}
+
+        {/* Show warning if fallback routines are being used */}
+        {Array.isArray(routines) && routines.length > 0 && routines[0].id === '1' && routines[0].subject === 'Mathematics' && routines[0].teacherName === 'Prof. Johnson' && (
+          <div style={{ color: '#b45309', background: '#fef3c7', padding: '10px', borderRadius: '8px', marginBottom: '16px', textAlign: 'center', fontWeight: '500' }}>
+            Warning: Showing fallback routines. Backend API is not connected or not responding.
+          </div>
+        )}
+
+        {loadingRoutines ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+            Loading routines...
+          </div>
+        ) : routines.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+            <FaCalendarAlt style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.3 }} />
+            <p>No class schedules found. Create your first routine!</p>
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f8fafc' }}>
+                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', fontWeight: '600', color: '#374151' }}>Subject</th>
+                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', fontWeight: '600', color: '#374151' }}>Teacher</th>
+                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', fontWeight: '600', color: '#374151' }}>Day</th>
+                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', fontWeight: '600', color: '#374151' }}>Time</th>
+                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', fontWeight: '600', color: '#374151' }}>Room</th>
+                  <th style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #e5e7eb', fontWeight: '600', color: '#374151' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {routines.map((routine, index) => (
+                  <motion.tr
+                    key={routine.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                    style={{ borderBottom: '1px solid #f3f4f6' }}
+                  >
+                    <td style={{ padding: '12px', color: '#374151', fontWeight: '500' }}>{routine.subject}</td>
+                    <td style={{ padding: '12px', color: '#6b7280' }}>{routine.teacherName}</td>
+                    <td style={{ padding: '12px', color: '#6b7280' }}>{routine.day}</td>
+                    <td style={{ padding: '12px', color: '#6b7280' }}>{routine.startTime} - {routine.endTime}</td>
+                    <td style={{ padding: '12px', color: '#6b7280' }}>{routine.room}</td>
+                    <td style={{ padding: '12px', textAlign: 'center' }}>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                        <button
+                          onClick={() => {
+                            setRoutineForm({
+                              subject: routine.subject,
+                              time: routine.startTime || routine.time,
+                              teacher: routine.teacherName,
+                              room: routine.room,
+                              day: routine.day || ''
+                            });
+                            setRoutineEditId(routine.id);
+                            setShowEditRoutineModal(true);
+                            setRoutineError('');
+                          }}
+                          style={{
+                            background: '#f59e0b',
+                            color: 'white',
+                            border: 'none',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
+                        >
+                          <FaEdit />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteRoutine(routine.id)}
+                          style={{
+                            background: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </motion.div>
+    </div>
+  );
+
+  // Attendance Section
   const renderAttendance = () => (
     <div style={{ padding: '20px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
       <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
         style={{
           backgroundColor: 'white',
           borderRadius: '16px',
@@ -1965,177 +1556,364 @@ const AdminDashboard = () => {
           border: '1px solid #e5e7eb'
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ 
-            color: '#1f2937', 
-            fontSize: '24px', 
-            fontWeight: '600', 
-            margin: 0,
-            borderBottom: '2px solid #e5e7eb',
-            paddingBottom: '10px'
-          }}>
-            उपस्थिति व्यवस्थापन
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <h2 style={{ color: '#2563eb', fontSize: '24px', fontWeight: '600', margin: 0 }}>
+            <FaClipboardList style={{ marginRight: '12px' }} />
+            Student Attendance
           </h2>
           <button
-            onClick={() => {
-              setAttendanceForm({ studentName: '', class: '', status: 'उपस्थित', date: attendanceDate });
-              setShowAddAttendanceModal(true);
-              setAttendanceError('');
-            }}
+            onClick={() => setShowAddAttendanceModal(true)}
             style={{
-              backgroundColor: '#8b5cf6',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
               color: 'white',
               border: 'none',
               padding: '12px 24px',
-              borderRadius: '6px',
-              cursor: 'pointer',
+              borderRadius: '8px',
               fontSize: '14px',
-              fontWeight: '600'
+              fontWeight: '500',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
             }}
           >
-            + उपस्थिति थप्नुहोस्
+            + Mark Attendance
           </button>
         </div>
-        
-        {loadingAttendance ? (
-          <p style={{ textAlign: 'center', color: '#6b7280' }}>लोड हुँदैछ...</p>
+
+    {loadingAttendance ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+            Loading attendance records...
+          </div>
+        ) : attendanceList.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+            <FaClipboardList style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.3 }} />
+            <p>No attendance records found. Start marking attendance!</p>
+          </div>
         ) : (
-          <table style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            overflow: 'hidden',
-            border: '1px solid #e5e7eb'
-          }}>
-            <thead>
-              <tr style={{ backgroundColor: '#374151', color: 'white' }}>
-                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>विद्यार्थीको नाम</th>
-                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>कक्षा</th>
-                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>स्थिति</th>
-                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>मिति</th>
-                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>कार्यहरू</th>
-              </tr>
-            </thead>
-            <tbody>
-              {attendanceList.map((attendance) => (
-                <tr key={attendance._id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                  <td style={{ padding: '16px', fontWeight: '500' }}>{attendance.studentName}</td>
-                  <td style={{ padding: '16px' }}>{attendance.class}</td>
-                  <td style={{ 
-                    padding: '16px', 
-                    color: attendance.status === 'उपस्थित' ? '#059669' : '#dc2626',
-                    fontWeight: '600'
-                  }}>
-                    {attendance.status}
-                  </td>
-                  <td style={{ padding: '16px' }}>{attendance.date}</td>
-                  <td style={{ padding: '16px' }}>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button
-                        onClick={() => {
-                          setAttendanceForm(attendance);
-                          setAttendanceEditId(attendance._id);
-                          setShowEditAttendanceModal(true);
-                          setAttendanceError('');
-                        }}
-                        style={{
-                          backgroundColor: '#3b82f6',
-                          color: 'white',
-                          border: 'none',
-                          padding: '6px 12px',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '12px'
-                        }}
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteAttendance(attendance._id)}
-                        style={{
-                          backgroundColor: '#ef4444',
-                          color: 'white',
-                          border: 'none',
-                          padding: '6px 12px',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '12px'
-                        }}
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
-                  </td>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f8fafc' }}>
+                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', fontWeight: '600', color: '#374151' }}>Student</th>
+                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', fontWeight: '600', color: '#374151' }}>Subject</th>
+                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', fontWeight: '600', color: '#374151' }}>Date</th>
+                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', fontWeight: '600', color: '#374151' }}>Status</th>
+                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', fontWeight: '600', color: '#374151' }}>Time</th>
+                  <th style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #e5e7eb', fontWeight: '600', color: '#374151' }}>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {attendanceList.map((attendance, index) => (
+                  <motion.tr
+                    key={attendance.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                    style={{ borderBottom: '1px solid #f3f4f6' }}
+                  >
+                    <td style={{ padding: '12px', color: '#374151', fontWeight: '500' }}>{attendance.studentName}</td>
+                    <td style={{ padding: '12px', color: '#6b7280' }}>{attendance.subject}</td>
+                    <td style={{ padding: '12px', color: '#6b7280' }}>{new Date(attendance.date).toLocaleDateString()}</td>
+                    <td style={{ padding: '12px' }}>
+                      <span style={{
+                        padding: '4px 12px',
+                        borderRadius: '20px',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        backgroundColor: attendance.status === 'Present' ? '#dcfce7' : '#fee2e2',
+                        color: attendance.status === 'Present' ? '#15803d' : '#dc2626'
+                      }}>
+                        {attendance.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px', color: '#6b7280' }}>{attendance.time}</td>
+                    <td style={{ padding: '12px', textAlign: 'center' }}>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                        <button
+                          onClick={() => {
+                            setAttendanceForm({
+                              studentName: attendance.studentName,
+                              class: attendance.class,
+                              status: attendance.status,
+                              date: attendance.date,
+                              time: attendance.time || ''
+                            });
+                            setAttendanceEditId(attendance.id);
+                            setShowEditAttendanceModal(true);
+                            setAttendanceError('');
+                          }}
+                          style={{
+                            background: '#f59e0b',
+                            color: 'white',
+                            border: 'none',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
+                        >
+                          <FaEdit />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteAttendance(attendance.id)}
+                          style={{
+                            background: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </motion.div>
     </div>
   );
 
-  // Fees Management Section
-  const renderFees = () => (
+  // Courses Section
+  const renderCourses = () => (
     <div style={{ padding: '20px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
       <motion.div
-        style={{
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          padding: '24px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
-          border: '1px solid #e5e7eb'
-        }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        style={{ backgroundColor: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)', border: '1px solid #e5e7eb' }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ 
-            color: '#1f2937', 
-            fontSize: '24px', 
-            fontWeight: '600', 
-            margin: 0,
-            borderBottom: '2px solid #e5e7eb',
-            paddingBottom: '10px'
-          }}>
-            शुल्क व्यवस्थापन
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: '600', color: '#1f2937', margin: 0 }}>
+            <FaGraduationCap style={{ marginRight: '12px', color: '#3b82f6' }} />
+            Courses Management
           </h2>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowAddCourseModal(true)}
+            style={{
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '12px 24px',
+              fontSize: '14px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            <FaGraduationCap /> Add Course
+          </motion.button>
         </div>
-        
-        <table style={{
-          width: '100%',
-          borderCollapse: 'collapse',
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          overflow: 'hidden',
-          border: '1px solid #e5e7eb'
-        }}>
-          <thead>
-            <tr style={{ backgroundColor: '#374151', color: 'white' }}>
-              <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>विद्यार्थीको नाम</th>
-              <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>कक्षा</th>
-              <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>रकम</th>
-              <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>स्थिति</th>
-              <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600' }}>अन्तिम मिति</th>
-            </tr>
-          </thead>
-          <tbody>
-            {fees.map((fee) => (
-              <tr key={fee._id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                <td style={{ padding: '16px', fontWeight: '500' }}>{fee.studentName}</td>
-                <td style={{ padding: '16px' }}>{fee.class}</td>
-                <td style={{ padding: '16px', color: '#059669', fontWeight: '600' }}>{fee.amount}</td>
-                <td style={{ 
-                  padding: '16px', 
-                  color: fee.status === 'भुक्तानी भएको' ? '#059669' : '#dc2626',
-                  fontWeight: '600'
-                }}>
-                  {fee.status}
-                </td>
-                <td style={{ padding: '16px' }}>{fee.dueDate}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+
+        {loadingCourses ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+            Loading courses...
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: '#374151' }}>Name</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: '#374151' }}>Code</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: '#374151' }}>Teacher</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: '#374151' }}>Credits</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: '#374151' }}>Fee</th>
+                  <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#374151' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {courses.map((course, index) => (
+                  <motion.tr
+                    key={course.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                    style={{ borderBottom: '1px solid #f3f4f6' }}
+                  >
+                    <td style={{ padding: '12px', color: '#1f2937' }}>{course.name}</td>
+                    <td style={{ padding: '12px', color: '#6b7280' }}>{course.code}</td>
+                    <td style={{ padding: '12px', color: '#6b7280' }}>{course.teacherName}</td>
+                    <td style={{ padding: '12px', color: '#6b7280' }}>{course.credits}</td>
+                    <td style={{ padding: '12px', color: '#6b7280' }}>${course.fee}</td>
+                    <td style={{ padding: '12px', textAlign: 'center' }}>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => handleEditCourse(course)}
+                          style={{
+                            backgroundColor: '#f59e0b',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            padding: '6px 12px',
+                            fontSize: '12px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <FaEdit />
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => handleDeleteCourse(course.id)}
+                          style={{
+                            backgroundColor: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            padding: '6px 12px',
+                            fontSize: '12px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <FaTrash />
+                        </motion.button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+            {courses.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                No courses found. Add your first course!
+              </div>
+            )}
+          </div>
+        )}
+      </motion.div>
+    </div>
+  );
+
+  // Teachers Section
+  const renderTeachers = () => (
+    <div style={{ padding: '20px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        style={{ backgroundColor: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)', border: '1px solid #e5e7eb' }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: '600', color: '#1f2937', margin: 0 }}>
+            <FaChalkboardTeacher style={{ marginRight: '12px', color: '#3b82f6' }} />
+            Teachers Management
+          </h2>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowAddTeacherModal(true)}
+            style={{
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '12px 24px',
+              fontSize: '14px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            <FaUser /> Add Teacher
+          </motion.button>
+        </div>
+
+        {loadingTeachers ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+            Loading teachers...
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: '#374151' }}>Name</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: '#374151' }}>Email</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: '#374151' }}>Subject</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: '#374151' }}>Department</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: '#374151' }}>Phone</th>
+                  <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#374151' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {teachers.map((teacher, index) => (
+                  <motion.tr
+                    key={teacher.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                    style={{ borderBottom: '1px solid #f3f4f6' }}
+                  >
+                    <td style={{ padding: '12px', color: '#1f2937' }}>{teacher.name}</td>
+                    <td style={{ padding: '12px', color: '#6b7280' }}>{teacher.email}</td>
+                    <td style={{ padding: '12px', color: '#6b7280' }}>{teacher.subject}</td>
+                    <td style={{ padding: '12px', color: '#6b7280' }}>{teacher.department}</td>
+                    <td style={{ padding: '12px', color: '#6b7280' }}>{teacher.phone}</td>
+                    <td style={{ padding: '12px', textAlign: 'center' }}>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => handleEditTeacher(teacher)}
+                          style={{
+                            backgroundColor: '#f59e0b',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            padding: '6px 12px',
+                            fontSize: '12px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <FaEdit />
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => handleDeleteTeacher(teacher.id)}
+                          style={{
+                            backgroundColor: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            padding: '6px 12px',
+                            fontSize: '12px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <FaTrash />
+                        </motion.button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+            {teachers.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                No teachers found. Add your first teacher!
+              </div>
+            )}
+          </div>
+        )}
       </motion.div>
     </div>
   );
@@ -2144,54 +1922,81 @@ const AdminDashboard = () => {
   const renderLearningMaterials = () => (
     <div style={{ padding: '20px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
       <motion.div
-        style={{
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          padding: '24px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
-          border: '1px solid #e5e7eb'
-        }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        style={{ backgroundColor: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)', border: '1px solid #e5e7eb' }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ 
-            color: '#1f2937', 
-            fontSize: '24px', 
-            fontWeight: '600', 
-            margin: 0,
-            borderBottom: '2px solid #e5e7eb',
-            paddingBottom: '10px'
-          }}>
-            शिक्षण सामग्री व्यवस्थापन
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: '600', color: '#1f2937', margin: 0 }}>
+            <FaBook style={{ marginRight: '12px', color: '#3b82f6' }} />
+            Learning Materials
           </h2>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowAddLearningMaterialModal(true)}
+            style={{
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '12px 24px',
+              fontSize: '14px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            <FaBook /> Add Material
+          </motion.button>
         </div>
-        
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
-          gap: '20px' 
-        }}>
-          {learningMaterials.map((material) => (
-            <div key={material._id} style={{
-              backgroundColor: '#f8fafc',
-              border: '1px solid #e5e7eb',
-              borderRadius: '12px',
-              padding: '20px',
-              transition: 'transform 0.2s, box-shadow 0.2s'
-            }}>
-              <h3 style={{ 
-                color: '#1f2937', 
-                fontSize: '18px', 
-                fontWeight: '600', 
-                marginBottom: '8px' 
-              }}>
-                {material.title}
-              </h3>
-              <p style={{ color: '#6b7280', marginBottom: '4px' }}>विषय: {material.subject}</p>
-              <p style={{ color: '#6b7280', marginBottom: '4px' }}>कक्षा: {material.class}</p>
-              <p style={{ color: '#6b7280', marginBottom: '8px' }}>प्रकार: {material.type}</p>
-              <p style={{ color: '#374151', fontSize: '14px' }}>अपलोड मिति: {material.uploadDate}</p>
-            </div>
-          ))}
+        <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+          Learning Materials management coming soon...
+        </div>
+      </motion.div>
+    </div>
+  );
+
+  // Fees Section
+  const renderFees = () => (
+    <div style={{ padding: '20px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        style={{ backgroundColor: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)', border: '1px solid #e5e7eb' }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: '600', color: '#1f2937', margin: 0 }}>
+            <FaMoneyBillWave style={{ marginRight: '12px', color: '#3b82f6' }} />
+            Fees Management
+          </h2>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowAddFeeModal(true)}
+            style={{
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '12px 24px',
+              fontSize: '14px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            <FaMoneyBillWave /> Add Fee
+          </motion.button>
+        </div>
+        <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+          Fees management coming soon...
         </div>
       </motion.div>
     </div>
@@ -2201,974 +2006,40 @@ const AdminDashboard = () => {
   const renderNotifications = () => (
     <div style={{ padding: '20px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
       <motion.div
-        style={{
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          padding: '24px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
-          border: '1px solid #e5e7eb'
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ 
-            color: '#1f2937', 
-            fontSize: '24px', 
-            fontWeight: '600', 
-            margin: 0,
-            borderBottom: '2px solid #e5e7eb',
-            paddingBottom: '10px'
-          }}>
-            सूचना व्यवस्थापन
-          </h2>
-        </div>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {notifications.map((notification) => (
-            <div key={notification._id} style={{
-              backgroundColor: '#f8fafc',
-              border: '1px solid #e5e7eb',
-              borderRadius: '12px',
-              padding: '20px',
-              borderLeft: `4px solid ${
-                notification.priority === 'उच्च' ? '#ef4444' : 
-                notification.priority === 'मध्यम' ? '#f59e0b' : '#22c55e'
-              }`
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                <div>
-                  <h3 style={{ 
-                    color: '#1f2937', 
-                    fontSize: '18px', 
-                    fontWeight: '600', 
-                    marginBottom: '8px' 
-                  }}>
-                    {notification.title}
-                  </h3>
-                  <p style={{ color: '#6b7280', marginBottom: '8px' }}>{notification.message}</p>
-                  <div style={{ display: 'flex', gap: '16px', fontSize: '14px' }}>
-                    <span style={{ 
-                      color: notification.priority === 'उच्च' ? '#ef4444' : 
-                             notification.priority === 'मध्यम' ? '#f59e0b' : '#22c55e',
-                      fontWeight: '600'
-                    }}>
-                      प्राथमिकता: {notification.priority}
-                    </span>
-                    <span style={{ color: '#374151' }}>मिति: {notification.date}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </motion.div>
-    </div>
-  );
-
-  // Enhanced Courses Section with modals
-  const renderCourses = () => (
-    <div style={{ padding: '20px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
-      <motion.div
-        style={{
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          padding: '24px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
-          border: '1px solid #e5e7eb'
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
-          <h2 style={{ 
-            color: '#1f2937', 
-            fontSize: '24px', 
-            fontWeight: '600', 
-            margin: 0,
-            borderBottom: '2px solid #e5e7eb',
-            paddingBottom: '10px'
-          }}>
-            Course Management
-          </h2>
-          <button
-            onClick={() => {
-              setCourseForm({ title: '', description: '', instructor: '', duration: '' });
-              setShowAddCourseModal(true);
-              setCourseError('');
-            }}
-            style={{
-              backgroundColor: '#2563eb',
-              color: 'white',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '600',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => e.target.style.backgroundColor = '#1d4ed8'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = '#2563eb'}
-          >
-            + Add Course
-          </button>
-        </div>
-        
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
-          gap: '24px' 
-        }}>
-          {courses.map((course) => (
-            <div key={course._id} style={{
-              backgroundColor: '#f8fafc',
-              border: '1px solid #e5e7eb',
-              borderRadius: '12px',
-              padding: '24px',
-              transition: 'transform 0.2s, box-shadow 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.1)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-            >
-              <h3 style={{ 
-                color: '#1f2937', 
-                fontSize: '20px', 
-                fontWeight: '600', 
-                marginBottom: '12px' 
-              }}>
-                {course.title}
-              </h3>
-              <p style={{ color: '#6b7280', marginBottom: '12px', lineHeight: '1.5' }}>
-                {course.description}
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', marginBottom: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#374151' }}>Instructor:</span>
-                  <span style={{ fontWeight: '600' }}>{course.instructor}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#374151' }}>Duration:</span>
-                  <span style={{ fontWeight: '600' }}>{course.duration}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#374151' }}>Students:</span>
-                  <span style={{ fontWeight: '600', color: '#059669' }}>{course.students}</span>
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <button
-                  onClick={() => {
-                    setCourseForm(course);
-                    setCourseEditId(course._id);
-                    setShowEditCourseModal(true);
-                    setCourseError('');
-                  }}
-                  style={{
-                    backgroundColor: '#3b82f6',
-                    color: 'white',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    flex: 1,
-                    minWidth: '80px',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = '#2563eb'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = '#3b82f6'}
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDeleteCourse(course._id)}
-                  style={{
-                    backgroundColor: '#ef4444',
-                    color: 'white',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    minWidth: '80px',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = '#dc2626'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = '#ef4444'}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Add Course Modal */}
-        <Modal isOpen={showAddCourseModal} onClose={() => setShowAddCourseModal(false)} title="Add New Course">
-          <form onSubmit={e => { e.preventDefault(); handleAddCourse(); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                Course Title <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <input
-                value={courseForm.title}
-                onChange={e => setCourseForm({ ...courseForm, title: e.target.value })}
-                placeholder="e.g., Basic Mathematics"
-                required
-                style={{
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  background: '#ffffff',
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease',
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                Description <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <textarea
-                value={courseForm.description}
-                onChange={e => setCourseForm({ ...courseForm, description: e.target.value })}
-                placeholder="Course description..."
-                required
-                rows={3}
-                style={{
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  background: '#ffffff',
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease',
-                  resize: 'vertical'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                Instructor <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <input
-                value={courseForm.instructor}
-                onChange={e => setCourseForm({ ...courseForm, instructor: e.target.value })}
-                placeholder="e.g., Ram Bahadur"
-                required
-                style={{
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  background: '#ffffff',
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease',
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                Duration <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <input
-                value={courseForm.duration}
-                onChange={e => setCourseForm({ ...courseForm, duration: e.target.value })}
-                placeholder="e.g., 6 months"
-                required
-                style={{
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  background: '#ffffff',
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease',
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-            </div>
-            {courseError && <div style={{ color: '#ef4444', fontSize: '14px' }}>{courseError}</div>}
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
-              <button 
-                type="button" 
-                onClick={() => setShowAddCourseModal(false)}
-                style={{
-                  padding: '8px 16px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  background: '#ffffff',
-                  color: '#374151',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500'
-                }}
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit" 
-                disabled={loadingCourses}
-                style={{
-                  padding: '8px 16px',
-                  border: 'none',
-                  borderRadius: '6px',
-                  background: loadingCourses ? '#9ca3af' : '#2563eb',
-                  color: '#ffffff',
-                  cursor: loadingCourses ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500'
-                }}
-              >
-                {loadingCourses ? 'Adding...' : 'Add Course'}
-              </button>
-            </div>
-          </form>
-        </Modal>
-
-        {/* Edit Course Modal */}
-        <Modal isOpen={showEditCourseModal} onClose={() => setShowEditCourseModal(false)} title="Edit Course">
-          <form onSubmit={e => { e.preventDefault(); handleUpdateCourse(); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                Course Title <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <input
-                value={courseForm.title}
-                onChange={e => setCourseForm({ ...courseForm, title: e.target.value })}
-                placeholder="e.g., Basic Mathematics"
-                required
-                style={{
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  background: '#ffffff',
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease',
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                Description <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <textarea
-                value={courseForm.description}
-                onChange={e => setCourseForm({ ...courseForm, description: e.target.value })}
-                placeholder="Course description..."
-                required
-                rows={3}
-                style={{
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  background: '#ffffff',
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease',
-                  resize: 'vertical'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                Instructor <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <input
-                value={courseForm.instructor}
-                onChange={e => setCourseForm({ ...courseForm, instructor: e.target.value })}
-                placeholder="e.g., Ram Bahadur"
-                required
-                style={{
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  background: '#ffffff',
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease',
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                Duration <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <input
-                value={courseForm.duration}
-                onChange={e => setCourseForm({ ...courseForm, duration: e.target.value })}
-                placeholder="e.g., 6 months"
-                required
-                style={{
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  background: '#ffffff',
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease',
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-            </div>
-            {courseError && <div style={{ color: '#ef4444', fontSize: '14px' }}>{courseError}</div>}
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
-              <button 
-                type="button" 
-                onClick={() => setShowEditCourseModal(false)}
-                style={{
-                  padding: '8px 16px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  background: '#ffffff',
-                  color: '#374151',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500'
-                }}
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit" 
-                disabled={loadingCourses}
-                style={{
-                  padding: '8px 16px',
-                  border: 'none',
-                  borderRadius: '6px',
-                  background: loadingCourses ? '#9ca3af' : '#2563eb',
-                  color: '#ffffff',
-                  cursor: loadingCourses ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500'
-                }}
-              >
-                {loadingCourses ? 'Updating...' : 'Update Course'}
-              </button>
-            </div>
-          </form>
-        </Modal>
-      </motion.div>
-    </div>
-  );
-
-  // Teachers Section
-  const renderTeachers = () => (
-    <div style={{ padding: '20px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
-      <motion.div
-        key="teachers-section"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 20 }}
-        transition={{ duration: 0.4 }}
-        style={{
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          padding: '24px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
-          border: '1px solid #e5e7eb'
-        }}
+        transition={{ duration: 0.5 }}
+        style={{ backgroundColor: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)', border: '1px solid #e5e7eb' }}
       >
-        <h2 style={{ 
-          color: '#2563eb', 
-          fontSize: '24px', 
-          fontWeight: '600', 
-          marginBottom: '20px',
-          textAlign: 'center'
-        }}>
-          Manage Teachers
-        </h2>
-        {loadingTeachers ? <p>Loading...</p> : (
-          <>
-            <div style={{ 
-              overflowX: 'auto',
-              WebkitOverflowScrolling: 'touch',
-              borderRadius: '12px',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-            }}>
-              <table style={{
-                width: '100%',
-                minWidth: '700px',
-                borderCollapse: 'collapse',
-                backgroundColor: 'white'
-              }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#374151', color: 'white' }}>
-                    <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '60px' }}>#</th>
-                    <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '150px' }}>NAME</th>
-                    <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '200px' }}>EMAIL</th>
-                    <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '120px' }}>SUBJECT</th>
-                    <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '120px' }}>PHONE</th>
-                    <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', minWidth: '100px' }}>EXPERIENCE</th>
-                    <th style={{ padding: '16px', textAlign: 'center', fontWeight: '600', minWidth: '150px' }}>ACTIONS</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {teachers.length === 0 && (
-                    <tr>
-                      <td colSpan="7" style={{ 
-                        padding: '20px', 
-                        textAlign: 'center', 
-                        color: '#6b7280',
-                        fontStyle: 'italic'
-                      }}>
-                        No teachers found. Add your first teacher!
-                      </td>
-                    </tr>
-                  )}
-                  {teachers.map((teacher, index) => (
-                    <tr key={teacher._id || index} style={{ 
-                      borderBottom: '1px solid #e5e7eb',
-                      transition: 'background-color 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
-                      <td style={{ padding: '16px', fontWeight: '500' }}>{index + 1}</td>
-                      <td style={{ padding: '16px', fontWeight: '600' }}>{teacher.name}</td>
-                      <td style={{ padding: '16px', color: '#2563eb' }}>{teacher.email}</td>
-                      <td style={{ padding: '16px' }}>{teacher.subject}</td>
-                      <td style={{ padding: '16px' }}>{teacher.phone}</td>
-                      <td style={{ padding: '16px', color: '#059669', fontWeight: '600' }}>{teacher.experience}</td>
-                      <td style={{ padding: '16px' }}>
-                        <div style={{ 
-                          display: 'flex', 
-                          gap: '8px', 
-                          justifyContent: 'center',
-                          flexWrap: 'wrap'
-                        }}>
-                          <button
-                            onClick={() => {
-                              setTeacherForm(teacher);
-                              setTeacherEditId(teacher._id);
-                              setShowEditTeacherModal(true);
-                              setTeacherError('');
-                            }}
-                            style={{
-                              backgroundColor: '#3b82f6',
-                              color: 'white',
-                              border: 'none',
-                              padding: '8px 12px',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontSize: '12px',
-                              fontWeight: '500',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              transition: 'all 0.2s',
-                              minWidth: '60px',
-                              justifyContent: 'center'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.backgroundColor = '#2563eb';
-                              e.target.style.transform = 'translateY(-1px)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.backgroundColor = '#3b82f6';
-                              e.target.style.transform = 'translateY(0)';
-                            }}
-                          >
-                            <FaEdit />
-                            <span className="edit-text">Edit</span>
-                          </button>
-                          <button
-                            onClick={() => handleDeleteTeacher(teacher._id)}
-                            disabled={loadingTeachers}
-                            style={{
-                              backgroundColor: '#ef4444',
-                              color: 'white',
-                              border: 'none',
-                              padding: '8px 12px',
-                              borderRadius: '6px',
-                              cursor: loadingTeachers ? 'not-allowed' : 'pointer',
-                              fontSize: '12px',
-                              fontWeight: '500',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              opacity: loadingTeachers ? 0.6 : 1,
-                              transition: 'all 0.2s',
-                              minWidth: '60px',
-                              justifyContent: 'center'
-                            }}
-                            onMouseEnter={(e) => {
-                              if (!loadingTeachers) {
-                                e.target.style.backgroundColor = '#dc2626';
-                                e.target.style.transform = 'translateY(-1px)';
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!loadingTeachers) {
-                                e.target.style.backgroundColor = '#ef4444';
-                                e.target.style.transform = 'translateY(0)';
-                              }
-                            }}
-                          >
-                            <FaTrash />
-                            <span className="delete-text">Delete</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            
-            <div style={{ textAlign: 'center', marginTop: '20px' }}>
-              <button 
-                onClick={() => { 
-                  setShowAddTeacherModal(true); 
-                  setTeacherError(''); 
-                  setTeacherForm({ name: '', email: '', subject: '', phone: '', experience: '' });
-                }}
-                style={{
-                  backgroundColor: '#2563eb',
-                  color: 'white',
-                  border: 'none',
-                  padding: '12px 24px',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  margin: '0 auto',
-                  transition: 'background-color 0.2s'
-                }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#1d4ed8'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#2563eb'}
-              >
-                <span style={{ fontSize: '18px' }}>➕</span> Add Teacher
-              </button>
-            </div>
-
-            {/* Add Teacher Modal */}
-            <Modal isOpen={showAddTeacherModal} onClose={() => setShowAddTeacherModal(false)} title="Add Teacher">
-              <form onSubmit={e => { e.preventDefault(); handleAddTeacher(); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Name <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    value={teacherForm.name}
-                    onChange={e => setTeacherForm({ ...teacherForm, name: e.target.value })}
-                    placeholder="e.g., Ram Bahadur"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Email <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    type="email"
-                    value={teacherForm.email}
-                    onChange={e => setTeacherForm({ ...teacherForm, email: e.target.value })}
-                    placeholder="e.g., ram@learnx.np"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Subject <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    value={teacherForm.subject}
-                    onChange={e => setTeacherForm({ ...teacherForm, subject: e.target.value })}
-                    placeholder="e.g., Mathematics"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Phone <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    value={teacherForm.phone}
-                    onChange={e => setTeacherForm({ ...teacherForm, phone: e.target.value })}
-                    placeholder="e.g., 9841234567"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Experience <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    value={teacherForm.experience}
-                    onChange={e => setTeacherForm({ ...teacherForm, experience: e.target.value })}
-                    placeholder="e.g., 5 years"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                {teacherError && <div style={{ color: '#ef4444', fontSize: '14px' }}>{teacherError}</div>}
-                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                  <button 
-                    type="button" 
-                    onClick={() => setShowAddTeacherModal(false)}
-                    style={{
-                      padding: '8px 16px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      background: '#ffffff',
-                      color: '#374151',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '500'
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit" 
-                    disabled={loadingTeachers}
-                    style={{
-                      padding: '8px 16px',
-                      border: 'none',
-                      borderRadius: '6px',
-                      background: loadingTeachers ? '#9ca3af' : '#2563eb',
-                      color: '#ffffff',
-                      cursor: loadingTeachers ? 'not-allowed' : 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '500'
-                    }}
-                  >
-                    {loadingTeachers ? 'Adding...' : 'Add Teacher'}
-                  </button>
-                </div>
-              </form>
-            </Modal>
-
-            {/* Edit Teacher Modal */}
-            <Modal isOpen={showEditTeacherModal} onClose={() => setShowEditTeacherModal(false)} title="Edit Teacher">
-              <form onSubmit={e => { e.preventDefault(); handleUpdateTeacher(); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Name <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    value={teacherForm.name}
-                    onChange={e => setTeacherForm({ ...teacherForm, name: e.target.value })}
-                    placeholder="e.g., Ram Bahadur"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Email <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    type="email"
-                    value={teacherForm.email}
-                    onChange={e => setTeacherForm({ ...teacherForm, email: e.target.value })}
-                    placeholder="e.g., ram@learnx.np"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Subject <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    value={teacherForm.subject}
-                    onChange={e => setTeacherForm({ ...teacherForm, subject: e.target.value })}
-                    placeholder="e.g., Mathematics"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Phone <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    value={teacherForm.phone}
-                    onChange={e => setTeacherForm({ ...teacherForm, phone: e.target.value })}
-                    placeholder="e.g., 9841234567"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                    Experience <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    value={teacherForm.experience}
-                    onChange={e => setTeacherForm({ ...teacherForm, experience: e.target.value })}
-                    placeholder="e.g., 5 years"
-                    required
-                    style={{
-                      padding: '8px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      background: '#ffffff',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                  />
-                </div>
-                {teacherError && <div style={{ color: '#ef4444', fontSize: '14px' }}>{teacherError}</div>}
-                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                  <button 
-                    type="button" 
-                    onClick={() => setShowEditTeacherModal(false)}
-                    style={{
-                      padding: '8px 16px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      background: '#ffffff',
-                      color: '#374151',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '500'
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit" 
-                    disabled={loadingTeachers}
-                    style={{
-                      padding: '8px 16px',
-                      border: 'none',
-                      borderRadius: '6px',
-                      background: loadingTeachers ? '#9ca3af' : '#2563eb',
-                      color: '#ffffff',
-                      cursor: loadingTeachers ? 'not-allowed' : 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '500'
-                    }}
-                  >
-                    {loadingTeachers ? 'Updating...' : 'Update Teacher'}
-                  </button>
-                </div>
-              </form>
-            </Modal>
-          </>
-        )}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: '600', color: '#1f2937', margin: 0 }}>
+            <FaBell style={{ marginRight: '12px', color: '#3b82f6' }} />
+            Notifications
+          </h2>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowAddNotificationModal(true)}
+            style={{
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '12px 24px',
+              fontSize: '14px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            <FaBell /> Add Notification
+          </motion.button>
+        </div>
+        <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+          Notifications management coming soon...
+        </div>
       </motion.div>
     </div>
   );
@@ -3180,22 +2051,22 @@ const AdminDashboard = () => {
         return renderHome();
       case 'students':
         return renderStudents();
-      case 'reports':
-        return renderReports();
+      case 'teachers':
+        return renderTeachers();
+      case 'courses':
+        return renderCourses();
       case 'routine':
         return renderRoutines();
       case 'attendance':
         return renderAttendance();
+      case 'reports':
+        return renderReports();
       case 'learning':
         return renderLearningMaterials();
       case 'fees':
         return renderFees();
       case 'notifications':
         return renderNotifications();
-      case 'courses':
-        return renderCourses();
-      case 'teachers':
-        return renderTeachers();
       default:
         return renderHome();
     }
@@ -3209,80 +2080,306 @@ const AdminDashboard = () => {
   };
 
   return (
-    <>
-      <style>
-        {`
-          @media (max-width: 768px) {
-            .edit-text, .delete-text {
-              display: none !important;
-            }
-          }
-        `}
-      </style>
-      <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc' }}>
-        <Slidebar 
-          role="admin"
-          section={section} 
-          onSectionChange={setSection}
-          onLogout={handleLogout}
-        />
-        
-        <div style={{ 
-          flex: 1,
-          marginLeft: '240px',
-          minHeight: '100vh'
-        }}>
-          {/* Header */}
-          <div style={{
-            position: 'sticky',
-            top: 0,
-            height: '70px',
-            background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-            color: 'white',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0 24px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            zIndex: 100
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <img src={logoIcon} alt="LearnX Logo" style={{ width: '40px', height: '40px' }} />
-              <h1 style={{ 
-                margin: 0, 
-                fontSize: '24px', 
-                fontWeight: '700',
-                textShadow: '0 1px 2px rgba(0,0,0,0.1)'
-              }}>
-                LearnX Admin Dashboard
-              </h1>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <span style={{ fontSize: '14px', opacity: 0.9 }}>Welcome, Admin</span>
-              <div style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                background: 'rgba(255,255,255,0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '16px'
-              }}>
-                👤
-              </div>
-            </div>
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+      {/* Teacher Modals */}
+      <Modal isOpen={showAddTeacherModal} onClose={() => setShowAddTeacherModal(false)} title="Add New Teacher">
+        <form onSubmit={(e) => { e.preventDefault(); handleAddTeacher(); }}>
+          {teacherError && <div style={{ color: 'red', marginBottom: '10px' }}>{teacherError}</div>}
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Name *</label>
+            <input
+              type="text"
+              value={teacherForm.name}
+              onChange={(e) => setTeacherForm({...teacherForm, name: e.target.value})}
+              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+              required
+            />
           </div>
-          
-          {/* Main Content */}
-          <div style={{ minHeight: 'calc(100vh - 70px)' }}>
-            <AnimatePresence mode="wait">
-              {renderContent()}
-            </AnimatePresence>
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Email *</label>
+            <input
+              type="email"
+              value={teacherForm.email}
+              onChange={(e) => setTeacherForm({...teacherForm, email: e.target.value})}
+              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+              required
+            />
+          </div>
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Phone</label>
+            <input
+              type="tel"
+              value={teacherForm.phone}
+              onChange={(e) => setTeacherForm({...teacherForm, phone: e.target.value})}
+              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+            />
+          </div>
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Subject *</label>
+            <input
+              type="text"
+              value={teacherForm.subject}
+              onChange={(e) => setTeacherForm({...teacherForm, subject: e.target.value})}
+              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+              required
+            />
+          </div>
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Department</label>
+            <input
+              type="text"
+              value={teacherForm.department}
+              onChange={(e) => setTeacherForm({...teacherForm, department: e.target.value})}
+              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              onClick={() => setShowAddTeacherModal(false)}
+              style={{ padding: '8px 16px', border: '1px solid #ddd', borderRadius: '4px', background: 'white' }}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              style={{ padding: '8px 16px', border: 'none', borderRadius: '4px', background: '#3b82f6', color: 'white' }}
+            >
+              Add Teacher
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal isOpen={showEditTeacherModal} onClose={() => setShowEditTeacherModal(false)} title="Edit Teacher">
+        <form onSubmit={(e) => { e.preventDefault(); handleUpdateTeacher(); }}>
+          {teacherError && <div style={{ color: 'red', marginBottom: '10px' }}>{teacherError}</div>}
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Name *</label>
+            <input
+              type="text"
+              value={teacherForm.name}
+              onChange={(e) => setTeacherForm({...teacherForm, name: e.target.value})}
+              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+              required
+            />
+          </div>
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Email *</label>
+            <input
+              type="email"
+              value={teacherForm.email}
+              onChange={(e) => setTeacherForm({...teacherForm, email: e.target.value})}
+              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+              required
+            />
+          </div>
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Phone</label>
+            <input
+              type="tel"
+              value={teacherForm.phone}
+              onChange={(e) => setTeacherForm({...teacherForm, phone: e.target.value})}
+              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+            />
+          </div>
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Subject *</label>
+            <input
+              type="text"
+              value={teacherForm.subject}
+              onChange={(e) => setTeacherForm({...teacherForm, subject: e.target.value})}
+              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+              required
+            />
+          </div>
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Department</label>
+            <input
+              type="text"
+              value={teacherForm.department}
+              onChange={(e) => setTeacherForm({...teacherForm, department: e.target.value})}
+              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              onClick={() => setShowEditTeacherModal(false)}
+              style={{ padding: '8px 16px', border: '1px solid #ddd', borderRadius: '4px', background: 'white' }}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              style={{ padding: '8px 16px', border: 'none', borderRadius: '4px', background: '#f59e0b', color: 'white' }}
+            >
+              Update Teacher
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Course Modals */}
+      <Modal isOpen={showAddCourseModal} onClose={() => setShowAddCourseModal(false)} title="Add New Course">
+        <form onSubmit={(e) => { e.preventDefault(); handleAddCourse(); }}>
+          {courseError && <div style={{ color: 'red', marginBottom: '10px' }}>{courseError}</div>}
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Course Name *</label>
+            <input
+              type="text"
+              value={courseForm.name}
+              onChange={(e) => setCourseForm({...courseForm, name: e.target.value})}
+              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+              required
+            />
+          </div>
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Course Code *</label>
+            <input
+              type="text"
+              value={courseForm.code}
+              onChange={(e) => setCourseForm({...courseForm, code: e.target.value})}
+              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+              required
+            />
+          </div>
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Description</label>
+            <textarea
+              value={courseForm.description}
+              onChange={(e) => setCourseForm({...courseForm, description: e.target.value})}
+              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', minHeight: '80px' }}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              onClick={() => setShowAddCourseModal(false)}
+              style={{ padding: '8px 16px', border: '1px solid #ddd', borderRadius: '4px', background: 'white' }}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              style={{ padding: '8px 16px', border: 'none', borderRadius: '4px', background: '#3b82f6', color: 'white' }}
+            >
+              Add Course
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal isOpen={showEditCourseModal} onClose={() => setShowEditCourseModal(false)} title="Edit Course">
+        <form onSubmit={(e) => { e.preventDefault(); handleUpdateCourse(); }}>
+          {courseError && <div style={{ color: 'red', marginBottom: '10px' }}>{courseError}</div>}
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Course Name *</label>
+            <input
+              type="text"
+              value={courseForm.name}
+              onChange={(e) => setCourseForm({...courseForm, name: e.target.value})}
+              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+              required
+            />
+          </div>
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Course Code *</label>
+            <input
+              type="text"
+              value={courseForm.code}
+              onChange={(e) => setCourseForm({...courseForm, code: e.target.value})}
+              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+              required
+            />
+          </div>
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Description</label>
+            <textarea
+              value={courseForm.description}
+              onChange={(e) => setCourseForm({...courseForm, description: e.target.value})}
+              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', minHeight: '80px' }}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              onClick={() => setShowEditCourseModal(false)}
+              style={{ padding: '8px 16px', border: '1px solid #ddd', borderRadius: '4px', background: 'white' }}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              style={{ padding: '8px 16px', border: 'none', borderRadius: '4px', background: '#f59e0b', color: 'white' }}
+            >
+              Update Course
+            </button>
+          </div>
+        </form>
+      </Modal>
+      <Slidebar
+        role="admin"
+        section={section}
+        onSectionChange={setSection}
+        onLogout={handleLogout}
+      />
+      
+      <div style={{
+        flex: 1,
+        marginLeft: '240px',
+        minHeight: '100vh'
+      }}>
+        {/* Header */}
+        <div style={{
+          position: 'sticky',
+          top: 0,
+          height: '70px',
+          background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+          color: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 24px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          zIndex: 100
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <img src={logoIcon} alt="Logo" style={{ width: '50px', height: '50px' }} />
+            <h1 style={{
+              margin: 0,
+              fontSize: '24px',
+              fontWeight: '700',
+              textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+            }}>
+              LearnX - Admin Dashboard
+            </h1>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <span style={{ fontSize: '14px', opacity: 0.9 }}>Welcome, Admin</span>
+            <div style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '16px'
+            }}>
+              👤
+            </div>
           </div>
         </div>
+        
+        {/* Main Content */}
+        <div style={{ minHeight: 'calc(100vh - 70px)' }}>
+          <AnimatePresence mode="wait">
+            {renderContent()}
+          </AnimatePresence>
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 

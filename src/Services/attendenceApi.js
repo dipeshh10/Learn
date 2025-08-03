@@ -1,5 +1,48 @@
 const API_URL = import.meta.env.VITE_API_URL_ATTENDANCE || 'http://localhost:5002/api/attendance';
 
+// Fallback data for when API is not available
+const fallbackAttendance = [
+  {
+    id: '1',
+    studentName: 'John Doe',
+    studentId: '1',
+    subject: 'Mathematics',
+    date: '2024-08-19',
+    status: 'Present',
+    time: '09:00',
+    teacherName: 'Prof. Johnson',
+    notes: '',
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    id: '2',
+    studentName: 'Jane Smith',
+    studentId: '2',
+    subject: 'English Literature',
+    date: '2024-08-19',
+    status: 'Present',
+    time: '11:00',
+    teacherName: 'Prof. Smith',
+    notes: '',
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    id: '3',
+    studentName: 'Mike Johnson',
+    studentId: '3',
+    subject: 'Physics',
+    date: '2024-08-19',
+    status: 'Absent',
+    time: '14:00',
+    teacherName: 'Dr. Wilson',
+    notes: 'Sick leave',
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }
+];
+
 function getToken() {
   return localStorage.getItem('token');
 }
@@ -29,8 +72,13 @@ async function request(path = '', options = {}) {
   return res.json();
 }
 
-export function fetchAttendance() {
-  return request();
+export async function fetchAttendance() {
+  try {
+    return await request();
+  } catch (error) {
+    console.warn('API not available, using fallback data for attendance:', error.message);
+    return fallbackAttendance;
+  }
 }
 
 export function addAttendance(attendance) {

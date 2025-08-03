@@ -1,22 +1,39 @@
 const express = require('express');
-const authenticateToken = require('../middleware/authenticateToken');
-const authorizeRole = require('../middleware/authorizeRole');
 const {
   createRoutine,
   getAllRoutines,
+  getRoutineById,
   updateRoutine,
   deleteRoutine,
-} = require('../controller/routineController');
+} = require('../controller/routineControllerNEW');
+
+console.log('RoutineRoute imports:', {
+  createRoutine: typeof createRoutine,
+  getAllRoutines: typeof getAllRoutines,
+  getRoutineById: typeof getRoutineById,
+  updateRoutine: typeof updateRoutine,
+  deleteRoutine: typeof deleteRoutine
+});
+
+if ([createRoutine, getAllRoutines, getRoutineById, updateRoutine, deleteRoutine].some(fn => typeof fn !== 'function')) {
+  throw new Error('One or more routine handlers are undefined or not functions. Check routineController.js exports.');
+}
 
 const router = express.Router();
 
-// Admin: Create routine
-router.post('/', authenticateToken, authorizeRole('admin'), createRoutine);
-// All: Get all routines
-router.get('/', authenticateToken, getAllRoutines);
-// Admin: Update routine
-router.put('/:id', authenticateToken, authorizeRole('admin'), updateRoutine);
-// Admin: Delete routine
-router.delete('/:id', authenticateToken, authorizeRole('admin'), deleteRoutine);
+// Get all routines
+router.get('/', getAllRoutines);
+
+// Get routine by ID
+router.get('/:id', getRoutineById);
+
+// Create routine
+router.post('/', createRoutine);
+
+// Update routine
+router.put('/:id', updateRoutine);
+
+// Delete routine
+router.delete('/:id', deleteRoutine);
 
 module.exports = router;

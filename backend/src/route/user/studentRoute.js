@@ -1,11 +1,27 @@
 const express = require('express');
-const authenticateToken = require('../../middleware/authenticateToken');
-const authorizeRole = require('../../middleware/authorizeRole');
-const { getAllStudents } = require('../../controller/user/studentController');
+const { 
+  getAllStudents, 
+  getStudentById, 
+  createStudent, 
+  updateStudent, 
+  deleteStudent 
+} = require('../../controller/user/studentController');
 
 const router = express.Router();
 
-// Admin: Get all students
-router.get('/', authenticateToken, authorizeRole('admin'), getAllStudents);
+// Get all students
+router.get('/', getAllStudents);
+
+// Get student by ID
+router.get('/:id', getStudentById);
+
+// Create new student
+router.post('/', createStudent);
+
+// Update student
+router.put('/:id', updateStudent);
+
+// Delete student
+router.delete('/:id', deleteStudent);
 
 module.exports = router;

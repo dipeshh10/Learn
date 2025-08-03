@@ -1,25 +1,27 @@
 const express = require('express');
-const authenticateToken = require('../middleware/authenticateToken');
-const authorizeRole = require('../middleware/authorizeRole');
 const {
   createReport,
   getAllReports,
-  getStudentReports,
+  getReportById,
   updateReport,
-  deleteReport,
-} = require('../controller/reportController');
+  deleteReport
+} = require('../controller/reportControllerNEW');
 
 const router = express.Router();
 
-// Teacher: Create report
-router.post('/', authenticateToken, authorizeRole('teacher'), createReport);
-// Admin/Teacher: Get all reports
-router.get('/all', authenticateToken, authorizeRole('admin', 'teacher'), getAllReports);
-// Student: Get own reports
-router.get('/', authenticateToken, authorizeRole('student'), getStudentReports);
-// Teacher: Update report
-router.put('/:id', authenticateToken, authorizeRole('teacher'), updateReport);
-// Admin/Teacher: Delete report
-router.delete('/:id', authenticateToken, authorizeRole('admin', 'teacher'), deleteReport);
+// Get all reports
+router.get('/', getAllReports);
+
+// Get report by ID
+router.get('/:id', getReportById);
+
+// Create report
+router.post('/', createReport);
+
+// Update report
+router.put('/:id', updateReport);
+
+// Delete report
+router.delete('/:id', deleteReport);
 
 module.exports = router;

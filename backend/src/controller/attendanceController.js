@@ -1,86 +1,140 @@
-const pool = require('../database/db');
+const { Attendance, Student, User } = require('../models');
 
 // Create Attendance
-async function createAttendance(req, res) {
-  const { student_id, date, status } = req.body;
-  const teacher_id = req.user.id;
+const createAttendance = async (req, res) => {
   try {
-    const result = await pool.query(
-      'INSERT INTO attendance (student_id, teacher_id, date, status) VALUES ($1, $2, $3, $4) RETURNING *',
-      [student_id, teacher_id, date, status]
-    );
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-}
-
-// Get All Attendance (admin/teacher)
-async function getAllAttendance(req, res) {
-  try {
-    let result;
-    if (req.user.role === 'admin') {
-      result = await pool.query('SELECT * FROM attendance');
-    } else if (req.user.role === 'teacher') {
-      result = await pool.query('SELECT * FROM attendance WHERE teacher_id = $1', [req.user.id]);
-    } else {
-      return res.sendStatus(403);
+    const { studentName, class: className, date, status, remarks } = req.body;
+    const markedBy = 'default-admin-id'; // For now, we'll use a default admin ID
+    
+    // Try to find student by name to get studentId
+    let studentId = null;
+    const student = await Student.findOne({ where: { name: studentName } });
+    if (student) {
+      studentId = student.id;
     }
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    
+    const attendance = await Attendance.create({
+      studentId,
+      studentName,
+      class: className,
+      date,
+      status,
+      remarks,
+      markedBy
+    });
+    
+    res.status(201).json(attendance);
+  } catch (error) {
+    console.error('Error creating attendance:', error);
+    res.status(500).json({ error: 'Failed to create attendance' });
   }
-}
+};
 
-// Get Attendance for a Student (student only)
-async function getStudentAttendance(req, res) {
+// Get All Attendance
+const getAllAttendance = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM attendance WHERE student_id = $1', [req.user.id]);
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const attendance = await Attendance.findAll({
+      include: [
+        {
+          model: Student,
+          as: 'student',
+          attributes: ['name', 'email', 'course'],
+          required: false
+        }
+      ],
+      order: [['date', 'DESC'], ['studentName']]
+    });
+    
+    res.json(attendance);
+  } catch (error) {
+    console.error('Error fetching attendance:', error);
+    res.status(500).json({ error: 'Failed to fetch attendance' });
   }
-}
+};
 
-// Update Attendance (teacher only)
-async function updateAttendance(req, res) {
-  const { id } = req.params;
-  const { status } = req.body;
+// Get Attendance by ID
+const getAttendanceById = async (req, res) => {
   try {
-    const result = await pool.query(
-      'UPDATE attendance SET status=$1 WHERE id=$2 AND teacher_id=$3 RETURNING *',
-      [status, id, req.user.id]
-    );
-    if (result.rows.length === 0) return res.sendStatus(404);
-    res.json(result.rows[0]);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-}
-
-// Delete Attendance (admin/teacher)
-async function deleteAttendance(req, res) {
-  const { id } = req.params;
-  try {
-    let result;
-    if (req.user.role === 'admin') {
-      result = await pool.query('DELETE FROM attendance WHERE id=$1 RETURNING *', [id]);
-    } else if (req.user.role === 'teacher') {
-      result = await pool.query('DELETE FROM attendance WHERE id=$1 AND teacher_id=$2 RETURNING *', [id, req.user.id]);
-    } else {
-      return res.sendStatus(403);
+    const { id } = req.params;
+    const attendance = await Attendance.findByPk(id, {
+      include: [
+        {
+          model: Student,
+          as: 'student',
+          attributes: ['name', 'email', 'course'],
+          required: false
+        }
+      ]
+    });
+    
+    if (!attendance) {
+      return res.status(404).json({ error: 'Attendance record not found' });
     }
-    if (result.rows.length === 0) return res.sendStatus(404);
-    res.json({ message: 'Attendance deleted' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    
+    res.json(attendance);
+  } catch (error) {
+    console.error('Error fetching attendance:', error);
+    res.status(500).json({ error: 'Failed to fetch attendance' });
   }
-}
+};
+
+// Update Attendance
+const updateAttendance = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { studentName, class: className, date, status, remarks } = req.body;
+    
+    const attendance = await Attendance.findByPk(id);
+    if (!attendance) {
+      return res.status(404).json({ error: 'Attendance record not found' });
+    }
+    
+    // Try to find student by name to get studentId
+    let studentId = attendance.studentId;
+    const student = await Student.findOne({ where: { name: studentName } });
+    if (student) {
+      studentId = student.id;
+    }
+    
+    await attendance.update({
+      studentId,
+      studentName,
+      class: className,
+      date,
+      status,
+      remarks
+    });
+    
+    res.json(attendance);
+  } catch (error) {
+    console.error('Error updating attendance:', error);
+    res.status(500).json({ error: 'Failed to update attendance' });
+  }
+};
+
+// Delete Attendance
+const deleteAttendance = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const attendance = await Attendance.findByPk(id);
+    if (!attendance) {
+      return res.status(404).json({ error: 'Attendance record not found' });
+    }
+    
+    await attendance.destroy();
+    
+    res.json({ message: 'Attendance record deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting attendance:', error);
+    res.status(500).json({ error: 'Failed to delete attendance' });
+  }
+};
 
 module.exports = {
   createAttendance,
   getAllAttendance,
-  getStudentAttendance,
+  getAttendanceById,
   updateAttendance,
-  deleteAttendance,
+  deleteAttendance
 };
